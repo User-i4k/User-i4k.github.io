@@ -55,17 +55,15 @@
 <body>
   <h2 id="roomName">Sohbet Odası</h2>
 
-  <div id="messages">
-    <!-- Mesajlar burada görünecek -->
-  </div>
+  <div id="messages"></div>
 
   <input type="text" id="messageInput" placeholder="Mesajınızı yazın" />
   <button onclick="sendMessage()">Mesaj Gönder</button>
 
   <script type="module">
-    import { getDatabase, ref, get, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { getDatabase, ref, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { db } from './app.js';
 
-    const db = getDatabase();
     const urlParams = new URLSearchParams(window.location.search);
     const roomName = urlParams.get('room');
     const password = urlParams.get('password');
@@ -73,28 +71,11 @@
 
     if (!username) {
       alert("Lütfen giriş yapın.");
-      window.location.href = "index.html"; // Giriş sayfasına yönlendir
+      window.location.href = "index.html";
     }
 
     document.getElementById("roomName").innerText = `Oda: ${roomName}`;
 
-    // Oda şifresi kontrolü
-    function checkRoomPassword() {
-      const roomRef = ref(db, 'rooms/' + roomName + '/password');
-      get(roomRef).then(snapshot => {
-        const roomPassword = snapshot.val();
-        if (roomPassword && roomPassword !== password) {
-          alert("Yanlış şifre!");
-          window.location.href = "odalar.html"; // Odalar sayfasına yönlendir
-        }
-      }).catch(error => {
-        alert("Oda şifresi kontrol edilirken hata oluştu: " + error.message);
-      });
-    }
-
-    checkRoomPassword();
-
-    // Mesaj gönderme
     function sendMessage() {
       const message = document.getElementById("messageInput").value.trim();
       if (!message) {
@@ -106,43 +87,13 @@
       push(messageRef, {
         username: username,
         message: message,
-        timestamp: Date.now(),
+        timestamp: Date.now()
       }).then(() => {
         document.getElementById("messageInput").value = "";
-      }).catch(error => {
-        alert("Mesaj gönderilirken hata oluştu: " + error.message);
+      }).catch((error) => {
+        console.error("Mesaj gönderilirken hata oluştu:", error);
       });
     }
-
-    // Mesajları yükleme
-    function loadMessages() {
-      const messagesRef = ref(db, 'rooms/' + roomName + '/messages');
-      get(messagesRef).then(snapshot => {
-        const messages = snapshot.val();
-        const messagesContainer = document.getElementById("messages");
-        messagesContainer.innerHTML = ''; // Önceki mesajları temizle
-
-        for (const messageId in messages) {
-          const messageData = messages[messageId];
-          const messageElement = document.createElement("div");
-          messageElement.textContent = `${messageData.username}: ${messageData.message}`;
-          messagesContainer.appendChild(messageElement);
-        }
-      }).catch(error => {
-        alert("Mesajlar alınırken hata oluştu: " + error.message);
-      });
-    }
-
-    loadMessages();
-
-    const messagesRef = ref(db, 'rooms/' + roomName + '/messages');
-    messagesRef.on('child_added', (snapshot) => {
-      const messageData = snapshot.val();
-      const messageElement = document.createElement("div");
-      messageElement.textContent = `${messageData.username}: ${messageData.message}`;
-      document.getElementById("messages").appendChild(messageElement);
-    });
-
   </script>
 </body>
 </html>
