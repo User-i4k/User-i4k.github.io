@@ -1,82 +1,142 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Odalar</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oda Sohbeti</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    ul {
-      list-style: none;
+      background-color: #f0f4f8;
+      margin: 0;
       padding: 0;
     }
-
-    li {
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      height: 100vh;
       padding: 10px;
-      margin: 5px 0;
-      background: #f0f0f0;
+    }
+    #messages {
+      width: 100%;
+      max-width: 600px;
+      height: 70%;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      font-size: 1.1em;
+    }
+    #messages div {
+      margin-bottom: 10px;
+      padding: 5px;
       border-radius: 5px;
+      background-color: #f1f1f1;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 1em;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1em;
       cursor: pointer;
     }
-
-    button {
-      padding: 10px 15px;
-      margin-top: 10px;
+    button:hover {
+      background-color: #45a049;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <h2>Odalar</h2>
-  <ul id="roomList"></ul>
-  <button id="odaOlusturBtn">+ Yeni Oda Oluştur</button>
+  <div class="chat-container">
+    <h2 id="odaAdi">Odaya Hoşgeldiniz</h2>
+    <div id="messages"></div>
+    <input type="text" id="msgInput" placeholder="Mesaj yaz..." />
+    <button onclick="sendMessage()">Gönder</button>
+    <div class="footer">Sohbet Uygulaması - Oda Sohbeti</div>
+  </div>
 
-  <!-- Firebase + Room Script -->
+  <!-- Firebase SDK -->
   <script type="module">
-    import { db } from './app.js';
-    import { ref, set, onValue } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+    import { getDatabase, ref, onValue, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-    const odaListesi = document.getElementById("roomList");
-
-    // Oda oluşturma
-    document.getElementById("odaOlusturBtn").onclick = () => {
-      const odaAdi = prompt("Oda adı:");
-      const sifre = prompt("Şifre (isteğe bağlı):");
-
-      if (!odaAdi) return;
-
-      set(ref(db, 'rooms/' + odaAdi), {
-        password: sifre || null
-      });
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
+      authDomain: "okul-sohbet-794d0.firebaseapp.com",
+      databaseURL: "https://okul-sohbet-794d0-default-rtdb.firebaseio.com",
+      projectId: "okul-sohbet-794d0",
+      storageBucket: "okul-sohbet-794d0.firebasestorage.app",
+      messagingSenderId: "849190115812",
+      appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
-    // Odaları dinle ve listele
-    const roomsRef = ref(db, 'rooms');
-    onValue(roomsRef, (snapshot) => {
-      const veriler = snapshot.val();
-      odaListesi.innerHTML = "";
+    // Firebase'i başlat
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-      if (veriler) {
-        Object.keys(veriler).forEach(oda => {
-          const li = document.createElement("li");
-          li.textContent = "🗨️ " + oda;
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get('oda');
+    const username = localStorage.getItem("username");
 
-          li.onclick = () => {
-            const sifre = veriler[oda]?.password;
-            if (sifre) {
-              const girilen = prompt("Bu oda şifreli! Şifreyi gir:");
-              if (girilen !== sifre) {
-                alert("Hatalı şifre!");
-                return;
-              }
-            }
-            window.location.href = `sohbet.html?oda=${oda}`;
-          };
+    if (!room || !username) {
+      alert("Geçersiz giriş.");
+      window.location.href = "index.html";
+    }
 
-          odaListesi.appendChild(li);
+    document.getElementById("odaAdi").innerText = `${room} Odası`;
+
+    const msgRef = ref(db, `messages/${room}`);
+
+    onValue(msgRef, (snapshot) => {
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+      const data = snapshot.val();
+
+      if (data) {
+        Object.values(data).forEach(msg => {
+          const div = document.createElement("div");
+          div.innerText = `${msg.user}: ${msg.text}`;
+          container.appendChild(div);
+          container.scrollTop = container.scrollHeight;
         });
+      }
+    });
+
+    function sendMessage() {
+      const text = document.getElementById("msgInput").value.trim();
+      if (!text) return;
+
+      push(ref(db, `messages/${room}`), {
+        text: text,
+        user: username
+      });
+
+      document.getElementById("msgInput").value = "";
+    }
+
+    document.getElementById("msgInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        sendMessage();
       }
     });
   </script>
