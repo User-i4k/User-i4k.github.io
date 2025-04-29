@@ -5,77 +5,67 @@
   <title>Odalar</title>
   <style>
     body {
-      background: #1e272e;
-      color: #fff;
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
+      background: #f5f7fa;
+      color: #333;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
     }
 
     h2 {
-      font-size: 30px;
-      margin-bottom: 30px;
-    }
-
-    input[type="text"] {
-      padding: 12px;
-      width: 250px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
       margin-bottom: 10px;
     }
 
-    button {
-      padding: 12px 20px;
-      background-color: #0984e3;
-      border: none;
-      border-radius: 8px;
-      color: white;
+    input[type="text"] {
+      width: calc(100% - 110px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
       font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin-left: 5px;
+      border: none;
+      background-color: #1976d2;
+      color: white;
+      border-radius: 6px;
       cursor: pointer;
-      margin-left: 10px;
-      transition: background-color 0.3s ease;
     }
 
     button:hover {
-      background-color: #74b9ff;
+      background-color: #1565c0;
     }
 
-    #odalar {
-      margin-top: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
+    .oda {
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      margin-top: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .oda-karti {
-      background-color: #2f3542;
-      padding: 15px 20px;
-      border-radius: 10px;
-      width: 300px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .oda-karti:hover {
-      background-color: #57606f;
+    .oda a {
+      text-decoration: none;
+      color: #1976d2;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h2>Hoş geldin, <span id="kullanici"></span></h2>
+  <h2>Hoş geldin, <span id="userSpan"></span></h2>
   <input type="text" id="odaInput" placeholder="Yeni oda adı..." />
-  <button onclick="odaEkle()">Oda Oluştur</button>
+  <button onclick="odaOlustur()">Oda Oluştur</button>
 
-  <div id="odalar"></div>
+  <div id="odaListesi"></div>
 
-  <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    import { getDatabase, ref, onValue, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
@@ -91,35 +81,32 @@
     const db = getDatabase(app);
 
     const username = localStorage.getItem("username");
-    if (!username) {
-      alert("Giriş yapmadınız!");
-      window.location.href = "index.html";
-    }
+    if (!username) window.location.href = "index.html";
+    document.getElementById("userSpan").innerText = username;
 
-    document.getElementById("kullanici").innerText = username;
-
+    const odaListesi = document.getElementById("odaListesi");
     const roomsRef = ref(db, "rooms");
-    const odalarDiv = document.getElementById("odalar");
 
     onValue(roomsRef, (snapshot) => {
-      odalarDiv.innerHTML = "";
-      const rooms = snapshot.val();
-      if (rooms) {
-        Object.values(rooms).forEach((odaAdi) => {
+      odaListesi.innerHTML = "";
+      const data = snapshot.val();
+      if (data) {
+        Object.entries(data).forEach(([key, room]) => {
           const div = document.createElement("div");
-          div.className = "oda-karti";
-          div.innerText = `🗨️ ${odaAdi}`;
-          div.onclick = () => window.location.href = `sohbet.html?oda=${odaAdi}`;
-          odalarDiv.appendChild(div);
+          div.classList.add("oda");
+          div.innerHTML = `<a href="sohbet.html?oda=${encodeURIComponent(room.name)}">🗨️ ${room.name}</a>`;
+          odaListesi.appendChild(div);
         });
       }
     });
 
-    window.odaEkle = function () {
-      const odaAdi = document.getElementById("odaInput").value.trim();
+    window.odaOlustur = function () {
+      const odaInput = document.getElementById("odaInput");
+      const odaAdi = odaInput.value.trim();
       if (!odaAdi) return;
-      push(roomsRef, odaAdi);
-      document.getElementById("odaInput").value = "";
+
+      push(roomsRef, { name: odaAdi });
+      odaInput.value = "";
     };
   </script>
 </body>
