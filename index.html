@@ -45,15 +45,16 @@
 </head>
 <body>
   <h2>Kullanıcı Adı Gir</h2>
-  <input type="text" id="username" placeholder="Kullanıcı adı" onkeydown="handleKeyDown(event)" />
+  <input type="text" id="username" placeholder="Kullanıcı adı" />
   <br>
   <button onclick="login()">Giriş</button>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
+    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
       authDomain: "okul-sohbet-794d0.firebaseapp.com",
@@ -64,27 +65,43 @@
       appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
-    // Firebase'i başlat
     const app = initializeApp(firebaseConfig);
-  </script>
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-  <script>
-    // Kullanıcı girişi işlemi
+    // Kullanıcı doğrulaması
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Giriş yapmış kullanıcı
+        localStorage.setItem("username", user.displayName || "Anonim");
+        window.location.href = "odalar.html"; // Kullanıcı odalar sayfasına yönlendirilir
+      }
+    });
+
+    // Giriş yapma işlemi
     function login() {
       const username = document.getElementById("username").value;
       if (!username) {
         alert("Lütfen kullanıcı adı girin.");
         return;
       }
-      localStorage.setItem("username", username);
-      window.location.href = "odalar.html";
-    }
 
-    // Enter tuşuna basıldığında login fonksiyonunu çağıracak event handler
-    function handleKeyDown(event) {
-      if (event.key === "Enter") {
-        login();
-      }
+      // Kullanıcı adıyla giriş yapmadan önce anonim giriş yapılır
+      signInAnonymously(auth)
+        .then(() => {
+          // Giriş başarılı
+          const user = auth.currentUser;
+          user.updateProfile({
+            displayName: username
+          }).then(() => {
+            // Kullanıcı adı kaydedildikten sonra odalar sayfasına yönlendirilir
+            localStorage.setItem("username", username);
+            window.location.href = "odalar.html";
+          });
+        })
+        .catch((error) => {
+          alert("Giriş sırasında bir hata oluştu: " + error.message);
+        });
     }
   </script>
 </body>
