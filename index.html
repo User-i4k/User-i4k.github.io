@@ -84,6 +84,7 @@
       // Firebase ile anonim giriş yap
       signInAnonymously(auth)
         .then(() => {
+          console.log("Başarıyla giriş yapıldı.");
           window.location.href = "odalar.html";  // Giriş başarılıysa yönlendirme
         })
         .catch((error) => {
