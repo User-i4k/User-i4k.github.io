@@ -3,10 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <title>Giriş Yap</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"] {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      width: 250px;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 30px;
+      background-color: #00b894;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #019875;
+    }
+  </style>
 </head>
 <body>
   <h2>Kullanıcı Adı Gir</h2>
   <input type="text" id="username" placeholder="Kullanıcı adı" />
+  <br>
   <button onclick="login()">Giriş</button>
 
   <!-- Firebase SDK -->
@@ -24,7 +64,6 @@
       appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
-    // Firebase'i başlat
     const app = initializeApp(firebaseConfig);
   </script>
 
