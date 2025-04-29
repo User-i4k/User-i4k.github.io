@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Odalar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f0f0f0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Odalar</h2>
+  <ul id="roomList"></ul>
+  <button id="odaOlusturBtn">+ Yeni Oda Oluştur</button>
+
+  <!-- Firebase + Room Script -->
+  <script type="module">
+    import { db } from './app.js';
+    import { ref, set, onValue } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+
+    const odaListesi = document.getElementById("roomList");
+
+    // Oda oluşturma
+    document.getElementById("odaOlusturBtn").onclick = () => {
+      const odaAdi = prompt("Oda adı:");
+      const sifre = prompt("Şifre (isteğe bağlı):");
+
+      if (!odaAdi) return;
+
+      set(ref(db, 'rooms/' + odaAdi), {
+        password: sifre || null
+      });
+    };
+
+    // Odaları dinle ve listele
+    const roomsRef = ref(db, 'rooms');
+    onValue(roomsRef, (snapshot) => {
+      const veriler = snapshot.val();
+      odaListesi.innerHTML = "";
+
+      if (veriler) {
+        Object.keys(veriler).forEach(oda => {
+          const li = document.createElement("li");
+          li.textContent = "🗨️ " + oda;
+
+          li.onclick = () => {
+            const sifre = veriler[oda]?.password;
+            if (sifre) {
+              const girilen = prompt("Bu oda şifreli! Şifreyi gir:");
+              if (girilen !== sifre) {
+                alert("Hatalı şifre!");
+                return;
+              }
+            }
+            window.location.href = `sohbet.html?oda=${oda}`;
+          };
+
+          odaListesi.appendChild(li);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

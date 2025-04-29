@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Giriş Yap</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Kullanıcı Adı Gir</h2>
+  <input type="text" id="username" placeholder="Kullanıcı adı" />
+  <br />
+  <button id="girisBtn">Giriş</button>
+
+  <script type="module">
+    document.getElementById("girisBtn").addEventListener("click", () => {
+      const username = document.getElementById("username").value.trim();
+      if (!username) {
+        alert("Lütfen kullanıcı adı girin.");
+        return;
+      }
+      localStorage.setItem("username", username);
+      window.location.href = "odalar.html";
+    });
+  </script>
+</body>
+</html>
