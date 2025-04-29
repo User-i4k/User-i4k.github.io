@@ -4,24 +4,16 @@
   <meta charset="UTF-8" />
   <title>Sohbet</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
     #messages {
       height: 300px;
       border: 1px solid #ccc;
       padding: 10px;
       overflow-y: scroll;
-      margin-bottom: 10px;
     }
-
     input[type="text"] {
-      width: 70%;
+      width: 80%;
       padding: 10px;
     }
-
     button {
       padding: 10px;
     }
@@ -31,52 +23,74 @@
   <h2 id="odaAdi"></h2>
   <div id="messages"></div>
   <input type="text" id="msgInput" placeholder="Mesaj yaz..." />
-  <button id="gonderBtn">Gönder</button>
+  <button onclick="sendMessage()">Gönder</button>
 
-  <!-- Firebase + Chat Script -->
+  <!-- Firebase SDK -->
   <script type="module">
-    import { db } from './app.js';
-    import { ref, onValue, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+    import { getDatabase, ref, onValue, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-    const oda = new URLSearchParams(window.location.search).get('oda');
-    const kullanici = localStorage.getItem('username');
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
+      authDomain: "okul-sohbet-794d0.firebaseapp.com",
+      databaseURL: "https://okul-sohbet-794d0-default-rtdb.firebaseio.com",
+      projectId: "okul-sohbet-794d0",
+      storageBucket: "okul-sohbet-794d0.firebasestorage.app",
+      messagingSenderId: "849190115812",
+      appId: "1:849190115812:web:70e78485af056296720ff1"
+    };
 
-    if (!oda || !kullanici) {
+    // Firebase'i başlat
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get('oda');
+    const username = localStorage.getItem("username");
+
+    if (!room || !username) {
       alert("Geçersiz giriş.");
       window.location.href = "index.html";
     }
 
-    document.getElementById("odaAdi").innerText = `🗨️ ${oda} Odası`;
+    document.getElementById("odaAdi").innerText = `🗨️ ${room} Odası`;
 
-    const mesajRef = ref(db, `messages/${oda}`);
-    const mesajKutusu = document.getElementById("messages");
+    const msgRef = ref(db, `messages/${room}`);
 
-    // Mesajları dinle ve ekrana yaz
-    onValue(mesajRef, (snapshot) => {
-      mesajKutusu.innerHTML = "";
-      const veriler = snapshot.val();
-      if (veriler) {
-        Object.values(veriler).forEach(msg => {
+    onValue(msgRef, (snapshot) => {
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+      const data = snapshot.val();
+
+      if (data) {
+        Object.values(data).forEach(msg => {
           const div = document.createElement("div");
-          div.textContent = `${msg.user}: ${msg.text}`;
-          mesajKutusu.appendChild(div);
+          div.innerText = `${msg.user}: ${msg.text}`;
+          container.appendChild(div);
+          container.scrollTop = container.scrollHeight;
         });
-        mesajKutusu.scrollTop = mesajKutusu.scrollHeight;
       }
     });
 
-    // Mesaj gönder
-    document.getElementById("gonderBtn").onclick = () => {
-      const mesaj = document.getElementById("msgInput").value.trim();
-      if (!mesaj) return;
+    function sendMessage() {
+      const text = document.getElementById("msgInput").value.trim();
+      if (!text) return;
 
-      push(mesajRef, {
-        user: kullanici,
-        text: mesaj
+      push(ref(db, `messages/${room}`), {
+        text: text,
+        user: username
       });
 
       document.getElementById("msgInput").value = "";
-    };
+    }
+
+    // Enter tuşuna basınca mesaj gönderme işlevi
+    document.getElementById("msgInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
   </script>
 </body>
 </html>
