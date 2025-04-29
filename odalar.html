@@ -5,73 +5,73 @@
   <title>Odalar</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
     }
 
     h2 {
-      margin-bottom: 10px;
+      font-size: 28px;
+      margin-bottom: 30px;
     }
 
-    input[type="text"],
-    input[type="password"] {
-      width: calc(100% - 110px);
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    input[type="text"] {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      width: 250px;
       font-size: 16px;
+      outline: none;
+      margin-bottom: 20px;
     }
 
     button {
-      padding: 10px 15px;
-      font-size: 16px;
-      margin-left: 5px;
+      padding: 12px 30px;
+      background-color: #00b894;
       border: none;
-      background-color: #1976d2;
+      border-radius: 8px;
       color: white;
-      border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
+      transition: 0.3s ease;
     }
 
     button:hover {
-      background-color: #1565c0;
+      background-color: #019875;
     }
 
-    .oda {
+    .roomList {
+      margin-top: 20px;
+    }
+
+    .roomList div {
+      margin: 10px 0;
+      background: #34495e;
       padding: 10px;
-      background: white;
-      border-radius: 6px;
-      margin-top: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
     }
 
-    .oda a {
-      text-decoration: none;
-      color: #1976d2;
-      font-weight: bold;
-    }
-
-    .oda a:hover {
-      color: #1565c0;
+    .roomList div:hover {
+      background: #2c3e50;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h2>Hoş geldin, <span id="userSpan"></span></h2>
-  <input type="text" id="odaInput" placeholder="Yeni oda adı..." />
-  <input type="password" id="odaSifre" placeholder="Oda Şifresi (isteğe bağlı)" />
-  <button onclick="odaOlustur()">Oda Oluştur</button>
+  <h2>Hoş Geldin, <span id="usernameDisplay"></span></h2>
+  <input type="text" id="roomName" placeholder="Yeni Oda Adı" />
+  <input type="text" id="roomPassword" placeholder="Oda Şifresi (isteğe bağlı)" />
+  <button onclick="createRoom()">Oda Oluştur</button>
 
-  <div id="odaListesi"></div>
+  <div class="roomList" id="roomList"></div>
 
+  <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+    import { getDatabase, ref, set, push, onValue, query, orderByChild } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
@@ -83,47 +83,80 @@
       appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
+    // Firebase'i başlat
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
 
-    const username = localStorage.getItem("username");
-    if (!username) window.location.href = "index.html";
-    document.getElementById("userSpan").innerText = username;
+    // Kullanıcı doğrulaması
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const username = user.displayName || user.email;
+        document.getElementById("usernameDisplay").innerText = username;
 
-    const odaListesi = document.getElementById("odaListesi");
-    const roomsRef = ref(db, "rooms");
+        // Kullanıcı adı localStorage'de saklanır
+        localStorage.setItem("username", username);
 
-    onValue(roomsRef, (snapshot) => {
-      odaListesi.innerHTML = "";
-      const data = snapshot.val();
-      if (data) {
-        Object.entries(data).forEach(([key, room]) => {
-          const div = document.createElement("div");
-          div.classList.add("oda");
-          div.innerHTML = `<a href="sohbet.html?oda=${encodeURIComponent(room.name)}&sifre=${room.password || ''}">🗨️ ${room.name}</a>`;
-          odaListesi.appendChild(div);
-        });
+        loadRooms(); // Odaları yükle
+      } else {
+        alert("Giriş yapmadınız!");
+        window.location.href = "index.html";
       }
     });
 
-    window.odaOlustur = function () {
-      const odaInput = document.getElementById("odaInput");
-      const odaAdi = odaInput.value.trim();
-      const odaSifre = document.getElementById("odaSifre").value.trim();
-      
-      if (!odaAdi) {
-        alert("Lütfen oda adı girin.");
+    // Oda oluşturma
+    function createRoom() {
+      const roomName = document.getElementById("roomName").value.trim();
+      const roomPassword = document.getElementById("roomPassword").value.trim();
+      const username = localStorage.getItem("username");
+
+      if (!roomName) {
+        alert("Oda adı girin.");
         return;
       }
 
-      push(roomsRef, { 
-        name: odaAdi,
-        password: odaSifre || null
-      });
+      const roomRef = ref(db, 'rooms/' + roomName);
+      const roomData = {
+        name: roomName,
+        password: roomPassword, // Şifre varsa, boş bırakılabilir
+        createdBy: username
+      };
 
-      // Oda oluşturulduktan sonra otomatik olarak sohbet odasına geçiş yapalım
-      window.location.href = `sohbet.html?oda=${encodeURIComponent(odaAdi)}&sifre=${encodeURIComponent(odaSifre)}`;
-    };
+      set(roomRef, roomData).then(() => {
+        alert("Oda oluşturuldu!");
+        loadRooms(); // Oda oluşturulunca listeyi güncelle
+      }).catch((error) => {
+        console.error("Oda oluşturulamadı:", error);
+      });
+    }
+
+    // Odaları yükleme
+    function loadRooms() {
+      const roomsRef = query(ref(db, 'rooms'), orderByChild('name'));
+      onValue(roomsRef, (snapshot) => {
+        const roomsContainer = document.getElementById("roomList");
+        roomsContainer.innerHTML = ''; // Önceki odaları temizle
+
+        const data = snapshot.val();
+        if (data) {
+          Object.values(data).forEach(room => {
+            const roomDiv = document.createElement("div");
+            roomDiv.innerText = `🗨️ ${room.name} (Oluşturan: ${room.createdBy})`;
+            roomDiv.onclick = () => {
+              const enteredPassword = prompt("Şifre girin:");
+              if (enteredPassword === room.password || !room.password) {
+                window.location.href = `sohbet.html?oda=${room.name}`;
+              } else {
+                alert("Yanlış şifre!");
+              }
+            };
+            roomsContainer.appendChild(roomDiv);
+          });
+        } else {
+          roomsContainer.innerHTML = "<p>Henüz oda bulunmamaktadır.</p>";
+        }
+      });
+    }
   </script>
 </body>
 </html>
