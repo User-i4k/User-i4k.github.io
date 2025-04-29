@@ -446,15 +446,37 @@
         const ADMIN_USERNAME = 'admin';
         const ADMIN_PASSWORD = 'Asab!_0yuncu';
 
-        // Since localStorage isn't available, we'll use in-memory storage only
+        // loadData fonksiyonunu güncelle
         function loadData() {
-            // Initialize with empty data or default rooms if needed
-            // No loading from storage in this version
+            try {
+                const roomsData = localStorage.getItem('chatRooms');
+                if (roomsData) {
+                    appData.rooms = JSON.parse(roomsData);
+                }
+        
+                const messagesData = localStorage.getItem('chatMessages');
+                if (messagesData) {
+                    appData.messages = JSON.parse(messagesData);
+                } else {
+                    appData.messages = {};
+                }
+            } catch (error) {
+                console.error('Veriler yüklenirken hata oluştu:', error);
+                // Hata durumunda varsayılan boş verilerle devam et
+                appData.rooms = [];
+                appData.messages = {};
+            }
         }
 
-        // No need to save data since we're using memory only
+        // saveData fonksiyonunu güncelle
         function saveData() {
-            // This function is kept for compatibility, but does nothing
+            try {
+                localStorage.setItem('chatRooms', JSON.stringify(appData.rooms));
+                localStorage.setItem('chatMessages', JSON.stringify(appData.messages));
+            } catch (error) {
+                console.error('Veriler kaydedilirken hata oluştu:', error);
+                alert('Veriler kaydedilemedi! Tarayıcınızın depolama sınırları dolmuş olabilir.');
+            }
         }
 
         // Check if username is admin
