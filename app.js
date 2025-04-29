@@ -13,9 +13,9 @@ const firebaseConfig = {
   appId: "1:849190115812:web:70e78485af056296720ff1"
 };
 
-// Uygulamayı başlat
+// Firebase uygulamasını başlat
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // Diğer dosyaların kullanabilmesi için dışa aktar
-export { app, db };
+export { db };
