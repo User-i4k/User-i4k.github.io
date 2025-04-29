@@ -52,8 +52,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
-    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
 
     // Firebase Konfigürasyonu
     const firebaseConfig = {
@@ -69,7 +68,6 @@
 
     // Firebase'i Başlat
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
     const auth = getAuth(app);
 
     // Kullanıcı Adını Kaydet ve Yönlendirme
@@ -83,8 +81,15 @@
       // Kullanıcı Adını LocalStorage'a Kaydet
       localStorage.setItem("username", username);
 
-      // Odanın ID'sini ve kullanıcı adıyla giriş işlemi
-      window.location.href = "odalar.html";
+      // Firebase ile anonim giriş yap
+      signInAnonymously(auth)
+        .then(() => {
+          window.location.href = "odalar.html";  // Giriş başarılıysa yönlendirme
+        })
+        .catch((error) => {
+          console.error("Giriş yaparken hata oluştu:", error.message);
+          alert("Giriş yaparken hata oluştu.");
+        });
     }
 
     // Giriş butonuna tıklama event listener'ı ekliyoruz
