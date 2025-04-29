@@ -17,7 +17,7 @@
       margin-bottom: 30px;
     }
 
-    input[type="text"], input[type="password"] {
+    input[type="text"] {
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
@@ -46,37 +46,41 @@
 <body>
   <h2>Oda Oluştur</h2>
 
-  <input type="text" id="roomNameInput" placeholder="Oda adı" />
-  <input type="password" id="passwordInput" placeholder="Oda şifresi" />
+  <input type="text" id="roomNameInput" placeholder="Oda İsmi" />
+  <input type="text" id="roomPasswordInput" placeholder="Oda Şifresi" />
   <button onclick="createRoom()">Oda Oluştur</button>
 
   <script type="module">
     import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
-    import { db } from './app.js'; // Firebase bağlantısını doğru ekleyin
+    import { app } from './app.js';  // Firebase'i başlatan dosya
 
-    // createRoom fonksiyonunun burada tanımlı olduğuna emin olun
+    const db = getDatabase(app);
+
+    // Oda oluşturma fonksiyonu
     function createRoom() {
-      const roomName = document.getElementById("roomNameInput").value;
-      const password = document.getElementById("passwordInput").value;
-      const username = localStorage.getItem("username");
+      const roomName = document.getElementById("roomNameInput").value.trim();
+      const password = document.getElementById("roomPasswordInput").value.trim();
 
       if (!roomName) {
-        alert("Oda ismi boş olamaz.");
+        alert("Oda ismi boş olamaz!");
         return;
       }
 
       const roomRef = ref(db, 'rooms/' + roomName);
-      
-      set(roomRef, {
+      const newRoom = {
         name: roomName,
         password: password,
-        createdBy: username,
-      }).then(() => {
-        alert("Oda başarıyla oluşturuldu!");
-        window.location.href = "sohbet.html?room=" + roomName + "&password=" + password;
-      }).catch(error => {
-        console.error("Oda oluşturulurken hata oluştu:", error);
-      });
+        createdBy: localStorage.getItem("username"),
+      };
+
+      set(roomRef, newRoom)
+        .then(() => {
+          alert("Oda başarıyla oluşturuldu!");
+          window.location.href = "sohbet.html?room=" + roomName + "&password=" + password;
+        })
+        .catch((error) => {
+          alert("Oda oluşturulurken bir hata oluştu: " + error.message);
+        });
     }
   </script>
 </body>
