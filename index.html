@@ -47,14 +47,14 @@
   <h2>Kullanıcı Adı Gir</h2>
   <input type="text" id="username" placeholder="Kullanıcı adı" />
   <br>
-  <button id="loginButton">Giriş</button>
+  <button onclick="login()">Giriş</button>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
+    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-    // Firebase Konfigürasyonu
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
       authDomain: "okul-sohbet-794d0.firebaseapp.com",
@@ -62,46 +62,21 @@
       projectId: "okul-sohbet-794d0",
       storageBucket: "okul-sohbet-794d0.firebasestorage.app",
       messagingSenderId: "849190115812",
-      appId: "1:849190115812:web:70e78485af056296720ff1",
-      measurementId: "G-SLWK3XCYMH"
+      appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
-    // Firebase'i Başlat
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    // Kullanıcı Adını Kaydet ve Yönlendirme
     function login() {
       const username = document.getElementById("username").value;
       if (!username) {
         alert("Lütfen kullanıcı adı girin.");
         return;
       }
-
-      // Kullanıcı Adını LocalStorage'a Kaydet
       localStorage.setItem("username", username);
-
-      // Firebase ile anonim giriş yap
-      signInAnonymously(auth)
-        .then(() => {
-          console.log("Başarıyla giriş yapıldı.");
-          window.location.href = "odalar.html";  // Giriş başarılıysa yönlendirme
-        })
-        .catch((error) => {
-          console.error("Giriş yaparken hata oluştu:", error.message);
-          alert("Giriş yaparken hata oluştu.");
-        });
+      window.location.href = "odalar.html";
     }
-
-    // Giriş butonuna tıklama event listener'ı ekliyoruz
-    document.getElementById("loginButton").addEventListener("click", login);
-
-    // Enter tuşuyla giriş yapabilmek için:
-    document.getElementById("username").addEventListener("keypress", function(event) {
-      if (event.key === "Enter") {
-        login(); // Login fonksiyonunu çağır
-      }
-    });
   </script>
 </body>
 </html>
