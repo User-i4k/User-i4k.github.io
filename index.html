@@ -2,68 +2,52 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Giriş Yap</title>
   <style>
     body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
       font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
       text-align: center;
+      margin-top: 100px;
     }
 
     h2 {
-      color: #333;
+      font-size: 28px;
+      margin-bottom: 30px;
     }
 
     input[type="text"] {
-      width: 80%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      width: 250px;
       font-size: 16px;
+      outline: none;
+      margin-bottom: 20px;
     }
 
     button {
-      width: 85%;
-      padding: 10px;
-      background-color: #4CAF50;
+      padding: 12px 30px;
+      background-color: #00b894;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       color: white;
       font-size: 16px;
       cursor: pointer;
+      transition: 0.3s ease;
     }
 
     button:hover {
-      background-color: #45a049;
-    }
-
-    input[type="text"]:focus {
-      outline-color: #4CAF50;
+      background-color: #019875;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Kullanıcı Adı Gir</h2>
-    <input type="text" id="username" placeholder="Kullanıcı adı" onkeydown="handleKeyDown(event)" />
-    <button onclick="login()">Giriş</button>
-  </div>
+  <h2>Kullanıcı Adı Gir</h2>
+  <input type="text" id="username" placeholder="Kullanıcı adı" onkeydown="handleKeyDown(event)" />
+  <br>
+  <button onclick="login()">Giriş</button>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -85,6 +69,7 @@
   </script>
 
   <script>
+    // Kullanıcı girişi işlemi
     function login() {
       const username = document.getElementById("username").value;
       if (!username) {
