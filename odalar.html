@@ -9,7 +9,7 @@
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 100px;
     }
 
     h2 {
@@ -17,7 +17,7 @@
       margin-bottom: 30px;
     }
 
-    input[type="text"], input[type="password"] {
+    input[type="text"] {
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
@@ -42,94 +42,67 @@
       background-color: #019875;
     }
 
-    .room-list {
-      margin-top: 30px;
-    }
-
-    .room {
-      background-color: #203a43;
-      border-radius: 8px;
-      margin: 10px;
-      padding: 10px;
-    }
-
-    .room a {
-      color: #00b894;
-      text-decoration: none;
-      font-size: 20px;
+    #roomList {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h2>Oda Oluştur veya Katıl</h2>
-  <input type="text" id="roomName" placeholder="Oda adı" required>
-  <input type="password" id="roomPassword" placeholder="Şifre (Opsiyonel)" required>
+  <h2>Odalar</h2>
+  <input type="text" id="roomInput" placeholder="Oda adı girin" />
   <br>
   <button onclick="createRoom()">Oda Oluştur</button>
 
-  <div class="room-list" id="roomList">
-    <!-- Odalar buraya listelenecek -->
-  </div>
+  <div id="roomList"></div>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
-
     const db = getDatabase();
+
+    const username = localStorage.getItem("username");
+    if (!username) {
+      alert("Lütfen giriş yapın.");
+      window.location.href = "index.html";
+    }
 
     // Oda oluşturma
     function createRoom() {
-      const roomName = document.getElementById("roomName").value.trim();
-      const password = document.getElementById("roomPassword").value.trim();
-
+      const roomName = document.getElementById("roomInput").value.trim();
       if (!roomName) {
         alert("Oda adı boş olamaz.");
         return;
       }
 
-      const roomRef = ref(db, 'rooms/' + roomName);
-      set(roomRef, {
-        name: roomName,
-        password: password,
-      })
-      .then(() => {
-        alert("Oda başarıyla oluşturuldu!");
-        window.location.href = `sohbet.html?room=${roomName}&password=${password}`;
-      })
-      .catch((error) => {
-        console.error("Oda oluşturulurken hata oluştu:", error);
-        alert("Oda oluşturulurken bir hata oluştu.");
+      const password = prompt("Bu oda için bir şifre belirleyin (Opsiyonel):");
+
+      set(ref(db, 'rooms/' + roomName), {
+        password: password ? password : null,
+        createdBy: username,
+      }).then(() => {
+        alert(`Oda "${roomName}" başarıyla oluşturuldu.`);
+        window.location.href = `sohbet.html?room=${roomName}`;
+      }).catch((error) => {
+        alert("Oda oluşturulurken hata oluştu: " + error.message);
       });
     }
 
-    // Odaları listeleme
-    function listRooms() {
-      const roomListRef = ref(db, 'rooms');
-      get(roomListRef)
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            const rooms = snapshot.val();
-            const roomList = document.getElementById("roomList");
-            roomList.innerHTML = ""; // Eski listeyi temizle
-            for (const roomName in rooms) {
-              const room = rooms[roomName];
-              const roomDiv = document.createElement("div");
-              roomDiv.classList.add("room");
-              roomDiv.innerHTML = `<a href="sohbet.html?room=${roomName}&password=${room.password}">${roomName}</a>`;
-              roomList.appendChild(roomDiv);
-            }
-          } else {
-            alert("Henüz oda yok.");
-          }
-        })
-        .catch((error) => {
-          console.error("Odalar alınırken hata oluştu:", error);
-          alert("Odalar alınırken bir hata oluştu.");
-        });
+    // Oda listesi alma
+    function loadRooms() {
+      const roomRef = ref(db, 'rooms');
+      get(roomRef).then(snapshot => {
+        const rooms = snapshot.val();
+        const roomListDiv = document.getElementById("roomList");
+        for (const room in rooms) {
+          const roomElement = document.createElement("div");
+          roomElement.innerHTML = `<a href="sohbet.html?room=${room}">${room}</a>`;
+          roomListDiv.appendChild(roomElement);
+        }
+      }).catch(error => {
+        alert("Odalar alınırken hata oluştu: " + error.message);
+      });
     }
 
-    // Sayfa yüklendiğinde odaları listele
-    window.onload = listRooms;
+    loadRooms();
   </script>
 </body>
 </html>
