@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
 import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-// Firebase ayarların (senin kullandıkların)
+// Firebase ayarların
 const firebaseConfig = {
   apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
   authDomain: "okul-sohbet-794d0.firebaseapp.com",
