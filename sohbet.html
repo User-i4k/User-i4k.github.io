@@ -89,4 +89,49 @@
       }
 
       const messageRef = ref(db, 'rooms/' + roomName + '/messages');
-      push(messageRef,
+      push(messageRef, {
+        username: username,
+        message: message,
+        timestamp: new Date().toISOString(),
+      })
+      .then(() => {
+        document.getElementById("messageInput").value = ""; // Mesaj kutusunu temizle
+        loadMessages(); // Mesajları tekrar yükle
+      })
+      .catch((error) => {
+        console.error("Mesaj gönderilirken hata oluştu:", error);
+        alert("Mesaj gönderilirken bir hata oluştu.");
+      });
+    }
+
+    // Mesajları yükleme
+    function loadMessages() {
+      const messagesRef = ref(db, 'rooms/' + roomName + '/messages');
+      get(messagesRef)
+        .then((snapshot) => {
+          const messages = snapshot.val();
+          const messagesContainer = document.getElementById("messages");
+          messagesContainer.innerHTML = ""; // Eski mesajları temizle
+
+          for (const key in messages) {
+            const messageData = messages[key];
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            messageDiv.innerHTML = `<strong>${messageData.username}</strong>: ${messageData.message}`;
+            messagesContainer.appendChild(messageDiv);
+          }
+
+          // Mesajlar aşağıya kaydır
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        })
+        .catch((error) => {
+          console.error("Mesajlar alınırken hata oluştu:", error);
+          alert("Mesajlar alınırken bir hata oluştu.");
+        });
+    }
+
+    // Sayfa yüklendiğinde mesajları yükle
+    window.onload = loadMessages;
+  </script>
+</body>
+</html>
