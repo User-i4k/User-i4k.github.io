@@ -1,38 +1,71 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Giriş Yap</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sohbet Uygulaması</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
+      background-color: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-
-    input, button {
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
       padding: 10px;
-      font-size: 16px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 1em;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1em;
+      cursor: pointer;
+      width: 100%;
       margin-top: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <h2>Kullanıcı Adı Gir</h2>
-  <input type="text" id="username" placeholder="Kullanıcı adı" />
-  <br />
-  <button id="girisBtn">Giriş</button>
-
-  <script type="module">
-    document.getElementById("girisBtn").addEventListener("click", () => {
-      const username = document.getElementById("username").value.trim();
-      if (!username) {
-        alert("Lütfen kullanıcı adı girin.");
-        return;
-      }
-      localStorage.setItem("username", username);
-      window.location.href = "odalar.html";
-    });
-  </script>
+  <div class="container">
+    <h1>Hoşgeldiniz</h1>
+    <form action="odalar.html" method="GET">
+      <input type="text" id="username" name="username" placeholder="Kullanıcı Adı" required />
+      <input type="text" id="room" name="oda" placeholder="Oda Adı" required />
+      <button type="submit">Odaya Giriş Yap</button>
+    </form>
+    <div class="footer">Sohbet Uygulamasına Hoşgeldiniz</div>
+  </div>
 </body>
 </html>
