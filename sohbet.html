@@ -4,18 +4,43 @@
   <meta charset="UTF-8" />
   <title>Sohbet</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f2f5;
+    }
+
+    h2 {
+      color: #333;
+    }
+
     #messages {
       height: 300px;
       border: 1px solid #ccc;
       padding: 10px;
       overflow-y: scroll;
+      background-color: white;
+      margin-bottom: 10px;
     }
+
     input[type="text"] {
-      width: 80%;
+      width: 75%;
       padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
+
     button {
-      padding: 10px;
+      padding: 10px 15px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
@@ -36,12 +61,12 @@
       authDomain: "okul-sohbet-794d0.firebaseapp.com",
       databaseURL: "https://okul-sohbet-794d0-default-rtdb.firebaseio.com",
       projectId: "okul-sohbet-794d0",
-      storageBucket: "okul-sohbet-794d0.firebasestorage.app",
+      storageBucket: "okul-sohbet-794d0.appspot.com",
       messagingSenderId: "849190115812",
       appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
-    // Firebase'i başlat
+    // Firebase başlat
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
@@ -73,7 +98,8 @@
       }
     });
 
-    function sendMessage() {
+    // Global erişilebilir hale getir
+    window.sendMessage = function () {
       const text = document.getElementById("msgInput").value.trim();
       if (!text) return;
 
@@ -83,7 +109,14 @@
       });
 
       document.getElementById("msgInput").value = "";
-    }
+    };
+
+    // Enter ile mesaj gönderme
+    document.getElementById("msgInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        window.sendMessage();
+      }
+    });
   </script>
 </body>
 </html>
