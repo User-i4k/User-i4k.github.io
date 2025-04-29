@@ -62,9 +62,8 @@
   <input type="text" id="messageInput" placeholder="Mesajınızı yazın" />
   <button onclick="sendMessage()">Mesaj Gönder</button>
 
-  <!-- Firebase SDK -->
   <script type="module">
-    import { getDatabase, ref, get, child, set, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { getDatabase, ref, get, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
     const db = getDatabase();
     const urlParams = new URLSearchParams(window.location.search);
@@ -74,11 +73,26 @@
 
     if (!username) {
       alert("Lütfen giriş yapın.");
-      window.location.href = "index.html";
+      window.location.href = "index.html"; // Giriş sayfasına yönlendir
     }
 
-    // Oda adını göster
     document.getElementById("roomName").innerText = `Oda: ${roomName}`;
+
+    // Oda şifresi kontrolü
+    function checkRoomPassword() {
+      const roomRef = ref(db, 'rooms/' + roomName + '/password');
+      get(roomRef).then(snapshot => {
+        const roomPassword = snapshot.val();
+        if (roomPassword && roomPassword !== password) {
+          alert("Yanlış şifre!");
+          window.location.href = "odalar.html"; // Odalar sayfasına yönlendir
+        }
+      }).catch(error => {
+        alert("Oda şifresi kontrol edilirken hata oluştu: " + error.message);
+      });
+    }
+
+    checkRoomPassword();
 
     // Mesaj gönderme
     function sendMessage() {
@@ -92,46 +106,43 @@
       push(messageRef, {
         username: username,
         message: message,
-        timestamp: new Date().toISOString(),
-      })
-      .then(() => {
-        document.getElementById("messageInput").value = ""; // Mesaj kutusunu temizle
-        loadMessages(); // Mesajları tekrar yükle
-      })
-      .catch((error) => {
-        console.error("Mesaj gönderilirken hata oluştu:", error);
-        alert("Mesaj gönderilirken bir hata oluştu.");
+        timestamp: Date.now(),
+      }).then(() => {
+        document.getElementById("messageInput").value = "";
+      }).catch(error => {
+        alert("Mesaj gönderilirken hata oluştu: " + error.message);
       });
     }
 
     // Mesajları yükleme
     function loadMessages() {
       const messagesRef = ref(db, 'rooms/' + roomName + '/messages');
-      get(messagesRef)
-        .then((snapshot) => {
-          const messages = snapshot.val();
-          const messagesContainer = document.getElementById("messages");
-          messagesContainer.innerHTML = ""; // Eski mesajları temizle
+      get(messagesRef).then(snapshot => {
+        const messages = snapshot.val();
+        const messagesContainer = document.getElementById("messages");
+        messagesContainer.innerHTML = ''; // Önceki mesajları temizle
 
-          for (const key in messages) {
-            const messageData = messages[key];
-            const messageDiv = document.createElement("div");
-            messageDiv.classList.add("message");
-            messageDiv.innerHTML = `<strong>${messageData.username}</strong>: ${messageData.message}`;
-            messagesContainer.appendChild(messageDiv);
-          }
-
-          // Mesajlar aşağıya kaydır
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        })
-        .catch((error) => {
-          console.error("Mesajlar alınırken hata oluştu:", error);
-          alert("Mesajlar alınırken bir hata oluştu.");
-        });
+        for (const messageId in messages) {
+          const messageData = messages[messageId];
+          const messageElement = document.createElement("div");
+          messageElement.textContent = `${messageData.username}: ${messageData.message}`;
+          messagesContainer.appendChild(messageElement);
+        }
+      }).catch(error => {
+        alert("Mesajlar alınırken hata oluştu: " + error.message);
+      });
     }
 
-    // Sayfa yüklendiğinde mesajları yükle
-    window.onload = loadMessages;
+    loadMessages();
+
+    const messagesRef = ref(db, 'rooms/' + roomName + '/messages');
+    messagesRef.on('child_added', (snapshot) => {
+      const messageData = snapshot.val();
+      const messageElement = document.createElement("div");
+      messageElement.textContent = `${messageData.username}: ${messageData.message}`;
+      document.getElementById("messages").appendChild(messageElement);
+    });
+
   </script>
 </body>
 </html>
