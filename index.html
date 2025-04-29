@@ -47,7 +47,7 @@
   <h2>Kullanıcı Adı Gir</h2>
   <input type="text" id="username" placeholder="Kullanıcı adı" />
   <br>
-  <button onclick="login()">Giriş</button>
+  <button id="loginButton">Giriş</button>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -65,6 +65,7 @@
       appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
+    // Firebase'i başlat
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -79,7 +80,7 @@
     });
 
     // Giriş yapma işlemi
-    function login() {
+    document.getElementById("loginButton").addEventListener("click", function() {
       const username = document.getElementById("username").value;
       if (!username) {
         alert("Lütfen kullanıcı adı girin.");
@@ -102,7 +103,7 @@
         .catch((error) => {
           alert("Giriş sırasında bir hata oluştu: " + error.message);
         });
-    }
+    });
   </script>
 </body>
 </html>
