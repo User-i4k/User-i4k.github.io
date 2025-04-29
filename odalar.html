@@ -5,80 +5,122 @@
   <title>Odalar</title>
   <style>
     body {
+      background: #1e272e;
+      color: #fff;
       font-family: Arial, sans-serif;
-      padding: 20px;
+      text-align: center;
+      padding: 40px;
     }
 
-    ul {
-      list-style: none;
-      padding: 0;
+    h2 {
+      font-size: 30px;
+      margin-bottom: 30px;
     }
 
-    li {
-      padding: 10px;
-      margin: 5px 0;
-      background: #f0f0f0;
-      border-radius: 5px;
-      cursor: pointer;
+    input[type="text"] {
+      padding: 12px;
+      width: 250px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      margin-bottom: 10px;
     }
 
     button {
-      padding: 10px 15px;
-      margin-top: 10px;
+      padding: 12px 20px;
+      background-color: #0984e3;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #74b9ff;
+    }
+
+    #odalar {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .oda-karti {
+      background-color: #2f3542;
+      padding: 15px 20px;
+      border-radius: 10px;
+      width: 300px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .oda-karti:hover {
+      background-color: #57606f;
     }
   </style>
 </head>
 <body>
-  <h2>Odalar</h2>
-  <ul id="roomList"></ul>
-  <button id="odaOlusturBtn">+ Yeni Oda Oluştur</button>
+  <h2>Hoş geldin, <span id="kullanici"></span></h2>
+  <input type="text" id="odaInput" placeholder="Yeni oda adı..." />
+  <button onclick="odaEkle()">Oda Oluştur</button>
 
-  <!-- Firebase + Room Script -->
+  <div id="odalar"></div>
+
+  <!-- Firebase SDK -->
   <script type="module">
-    import { db } from './app.js';
-    import { ref, set, onValue } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+    import { getDatabase, ref, onValue, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-    const odaListesi = document.getElementById("roomList");
-
-    // Oda oluşturma
-    document.getElementById("odaOlusturBtn").onclick = () => {
-      const odaAdi = prompt("Oda adı:");
-      const sifre = prompt("Şifre (isteğe bağlı):");
-
-      if (!odaAdi) return;
-
-      set(ref(db, 'rooms/' + odaAdi), {
-        password: sifre || null
-      });
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
+      authDomain: "okul-sohbet-794d0.firebaseapp.com",
+      databaseURL: "https://okul-sohbet-794d0-default-rtdb.firebaseio.com",
+      projectId: "okul-sohbet-794d0",
+      storageBucket: "okul-sohbet-794d0.firebasestorage.app",
+      messagingSenderId: "849190115812",
+      appId: "1:849190115812:web:70e78485af056296720ff1"
     };
 
-    // Odaları dinle ve listele
-    const roomsRef = ref(db, 'rooms');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const username = localStorage.getItem("username");
+    if (!username) {
+      alert("Giriş yapmadınız!");
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("kullanici").innerText = username;
+
+    const roomsRef = ref(db, "rooms");
+    const odalarDiv = document.getElementById("odalar");
+
     onValue(roomsRef, (snapshot) => {
-      const veriler = snapshot.val();
-      odaListesi.innerHTML = "";
-
-      if (veriler) {
-        Object.keys(veriler).forEach(oda => {
-          const li = document.createElement("li");
-          li.textContent = "🗨️ " + oda;
-
-          li.onclick = () => {
-            const sifre = veriler[oda]?.password;
-            if (sifre) {
-              const girilen = prompt("Bu oda şifreli! Şifreyi gir:");
-              if (girilen !== sifre) {
-                alert("Hatalı şifre!");
-                return;
-              }
-            }
-            window.location.href = `sohbet.html?oda=${oda}`;
-          };
-
-          odaListesi.appendChild(li);
+      odalarDiv.innerHTML = "";
+      const rooms = snapshot.val();
+      if (rooms) {
+        Object.values(rooms).forEach((odaAdi) => {
+          const div = document.createElement("div");
+          div.className = "oda-karti";
+          div.innerText = `🗨️ ${odaAdi}`;
+          div.onclick = () => window.location.href = `sohbet.html?oda=${odaAdi}`;
+          odalarDiv.appendChild(div);
         });
       }
     });
+
+    window.odaEkle = function () {
+      const odaAdi = document.getElementById("odaInput").value.trim();
+      if (!odaAdi) return;
+      push(roomsRef, odaAdi);
+      document.getElementById("odaInput").value = "";
+    };
   </script>
 </body>
 </html>
