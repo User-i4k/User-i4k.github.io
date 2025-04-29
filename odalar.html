@@ -17,7 +17,8 @@
       margin-bottom: 10px;
     }
 
-    input[type="text"] {
+    input[type="text"],
+    input[type="password"] {
       width: calc(100% - 110px);
       padding: 10px;
       margin-bottom: 10px;
@@ -54,11 +55,16 @@
       color: #1976d2;
       font-weight: bold;
     }
+
+    .oda a:hover {
+      color: #1565c0;
+    }
   </style>
 </head>
 <body>
   <h2>Hoş geldin, <span id="userSpan"></span></h2>
   <input type="text" id="odaInput" placeholder="Yeni oda adı..." />
+  <input type="password" id="odaSifre" placeholder="Oda Şifresi (isteğe bağlı)" />
   <button onclick="odaOlustur()">Oda Oluştur</button>
 
   <div id="odaListesi"></div>
@@ -94,7 +100,7 @@
         Object.entries(data).forEach(([key, room]) => {
           const div = document.createElement("div");
           div.classList.add("oda");
-          div.innerHTML = `<a href="sohbet.html?oda=${encodeURIComponent(room.name)}">🗨️ ${room.name}</a>`;
+          div.innerHTML = `<a href="sohbet.html?oda=${encodeURIComponent(room.name)}&sifre=${room.password || ''}">🗨️ ${room.name}</a>`;
           odaListesi.appendChild(div);
         });
       }
@@ -103,10 +109,20 @@
     window.odaOlustur = function () {
       const odaInput = document.getElementById("odaInput");
       const odaAdi = odaInput.value.trim();
-      if (!odaAdi) return;
+      const odaSifre = document.getElementById("odaSifre").value.trim();
+      
+      if (!odaAdi) {
+        alert("Lütfen oda adı girin.");
+        return;
+      }
 
-      push(roomsRef, { name: odaAdi });
-      odaInput.value = "";
+      push(roomsRef, { 
+        name: odaAdi,
+        password: odaSifre || null
+      });
+
+      // Oda oluşturulduktan sonra otomatik olarak sohbet odasına geçiş yapalım
+      window.location.href = `sohbet.html?oda=${encodeURIComponent(odaAdi)}&sifre=${encodeURIComponent(odaSifre)}`;
     };
   </script>
 </body>
