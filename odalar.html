@@ -27,6 +27,16 @@
       margin-bottom: 20px;
     }
 
+    input[type="password"] {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      width: 250px;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 20px;
+    }
+
     button {
       padding: 12px 30px;
       background-color: #00b894;
@@ -63,6 +73,7 @@
 <body>
   <h2>Hoş geldin, <span id="username"></span></h2>
   <input type="text" id="roomName" placeholder="Yeni oda adı..." />
+  <input type="password" id="roomPassword" placeholder="Oda Şifresi (Opsiyonel)" />
   <button onclick="createRoom()">Oda Oluştur</button>
 
   <div class="room-list" id="roomList"></div>
@@ -94,6 +105,8 @@
     // Oda Oluşturma Fonksiyonu
     function createRoom() {
       const roomName = document.getElementById("roomName").value;
+      const roomPassword = document.getElementById("roomPassword").value;
+      
       if (!roomName) {
         alert("Oda adı girin.");
         return;
@@ -103,7 +116,8 @@
       const roomRef = ref(db, 'rooms/' + roomName);
       set(roomRef, {
         name: roomName,
-        createdBy: username
+        createdBy: username,
+        password: roomPassword // Oda şifresi opsiyonel olarak kaydedildi
       }).then(() => {
         console.log('Oda başarıyla oluşturuldu.');
         // Odanın listeye eklenmesi
@@ -127,7 +141,13 @@
           roomElement.classList.add('room');
           roomElement.textContent = roomList[room].name;
           roomElement.onclick = function() {
-            window.location.href = "sohbet.html?room=" + room; // Odaya git
+            // Şifreli odalarda şifre kontrolü yap
+            const password = prompt("Şifreyi girin:");
+            if (password === roomList[room].password) {
+              window.location.href = "sohbet.html?room=" + room; // Odaya git
+            } else {
+              alert("Yanlış şifre!");
+            }
           };
           roomListElement.appendChild(roomElement);
         }
