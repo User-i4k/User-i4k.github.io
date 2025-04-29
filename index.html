@@ -3,994 +3,779 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAN Chat</title>
+    <title>Sınıf Sohbet Uygulaması</title>
     <style>
-        :root {
-            --primary-bg: #36393f;
-            --secondary-bg: #2f3136;
-            --tertiary-bg: #202225;
-            --accent-color: #5865f2;
-            --hover-color: #4752c4;
-            --text-color: #dcddde;
-            --muted-text: #8e9297;
-            --border-color: #42454a;
-            --channel-bg: #42464d;
-            --online-color: #3ba55c;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --primary-color: #4f46e5;
+            --secondary-color: #312e81;
+            --card-bg: #2a2a2a;
+            --input-bg: #333;
+            --input-text: #fff;
+            --message-bg: #3a3a3a;
+            --own-message-bg: #312e81;
+            --border-color: #444;
+            --modal-bg: #2a2a2a;
+            --danger-color: #dc2626;
         }
         
         body {
-            background-color: var(--primary-bg);
+            background-color: var(--bg-color);
             color: var(--text-color);
             height: 100vh;
-            overflow: hidden;
-        }
-        
-        .app-container {
             display: flex;
-            height: 100vh;
-        }
-        
-        /* Sidebar */
-        .servers-sidebar {
-            width: 72px;
-            background-color: var(--tertiary-bg);
-            padding: 12px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto;
-        }
-        
-        .home-button {
-            height: 48px;
-            width: 48px;
-            border-radius: 16px;
-            background-color: var(--accent-color);
-            display: flex;
-            align-items: center;
             justify-content: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-            color: white;
-            font-weight: bold;
-            transition: border-radius 0.15s, background-color 0.15s;
-        }
-        
-        .home-button:hover {
-            background-color: var(--hover-color);
-            border-radius: 12px;
-        }
-        
-        .server-separator {
-            height: 2px;
-            width: 32px;
-            background-color: var(--border-color);
-            margin: 6px 0;
-        }
-        
-        /* Channels */
-        .channels-container {
-            width: 240px;
-            background-color: var(--secondary-bg);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .server-header {
-            padding: 16px;
-            height: 48px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-weight: bold;
         }
         
-        .channel-list {
-            flex: 1;
-            overflow-y: auto;
-            padding-top: 8px;
-        }
-        
-        .channel-category {
-            padding: 16px 8px 4px 16px;
-            text-transform: uppercase;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--muted-text);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .add-channel {
-            cursor: pointer;
-            font-size: 18px;
-            color: var(--muted-text);
-            margin-right: 8px;
-        }
-        
-        .add-channel:hover {
-            color: var(--text-color);
-        }
-        
-        .channel-item {
-            padding: 6px 8px 6px 16px;
-            margin: 1px 0;
-            border-radius: 4px;
-            margin-right: 8px;
-            display: flex;
-            align-items: center;
-            color: var(--muted-text);
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .channel-item:hover {
-            background-color: rgba(79, 84, 92, 0.2);
-            color: var(--text-color);
-        }
-        
-        .channel-item.active {
-            background-color: var(--channel-bg);
-            color: var(--text-color);
-        }
-        
-        .channel-icon {
-            margin-right: 6px;
-            font-size: 18px;
-        }
-        
-        .channel-name {
-            flex: 1;
-        }
-        
-        .locked-icon {
-            margin-left: 4px;
-            font-size: 12px;
-        }
-        
-        .user-area {
-            height: 52px;
-            background-color: rgba(32, 34, 37, 0.5);
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: var(--accent-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 8px;
-            font-weight: bold;
-        }
-        
-        .user-details {
-            flex: 1;
-        }
-        
-        .username {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .user-status {
-            font-size: 11px;
-            color: var(--muted-text);
-        }
-        
-        /* Chat Area */
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-header {
-            height: 48px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-        }
-        
-        .channel-title {
-            font-weight: bold;
-            font-size: 15px;
-        }
-        
-        .channel-topic {
-            margin-left: 8px;
-            color: var(--muted-text);
-            font-size: 13px;
-        }
-        
-        .messages-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-        }
-        
-        .message {
-            margin-bottom: 16px;
-            display: flex;
-        }
-        
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 16px;
-            background-color: var(--tertiary-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        .message-content {
-            flex: 1;
-        }
-        
-        .message-header {
-            display: flex;
-            align-items: baseline;
-            margin-bottom: 4px;
-        }
-        
-        .message-author {
-            font-weight: 500;
-            margin-right: 8px;
-        }
-        
-        .message-timestamp {
-            font-size: 11px;
-            color: var(--muted-text);
-        }
-        
-        .message-text {
-            line-height: 1.4;
-            font-size: 14px;
-        }
-        
-        .input-container {
-            margin: 0 16px 16px;
-            padding-top: 16px;
-        }
-        
-        .message-input {
+        .container {
             width: 100%;
-            background-color: #40444b;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
+            max-width: 800px;
+            height: 90vh;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .login-screen {
+            padding: 30px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-screen h1 {
+            margin-bottom: 30px;
             color: var(--text-color);
-            font-size: 14px;
-            resize: none;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
             outline: none;
         }
         
-        .message-input::placeholder {
-            color: var(--muted-text);
+        input:focus {
+            border-color: var(--primary-color);
         }
         
-        /* Members List */
-        .members-list {
-            width: 240px;
-            background-color: var(--secondary-bg);
-            padding: 16px 8px;
+        button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .header {
+            padding: 15px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h2 {
+            font-size: 18px;
+        }
+        
+        .room-list {
+            padding: 20px;
+            display: none;
+            height: 100%;
             overflow-y: auto;
         }
         
-        .members-title {
-            padding: 8px 8px 4px 16px;
-            text-transform: uppercase;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--muted-text);
-            margin-bottom: 8px;
-        }
-        
-        .member-item {
-            padding: 8px 8px 8px 16px;
-            border-radius: 4px;
+        .room {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            color: var(--muted-text);
-            margin-bottom: 2px;
         }
         
-        .member-item:hover {
-            background-color: rgba(79, 84, 92, 0.2);
+        .room:hover {
+            background-color: var(--input-bg);
         }
         
-        .member-status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--online-color);
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            border: 2px solid var(--secondary-bg);
-        }
-        
-        .member-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 8px;
-            background-color: var(--tertiary-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            position: relative;
-        }
-        
-        .member-name {
-            font-size: 14px;
-            color: var(--text-color);
-        }
-        
-        .admin-badge {
-            margin-left: 4px;
-            font-size: 10px;
-            background-color: var(--accent-color);
-            color: white;
-            padding: 0px 4px;
-            border-radius: 3px;
-        }
-        
-        /* Modals */
-        .modal-overlay {
+        .create-room-btn {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: none;
-            align-items: center;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 24px;
+            display: flex;
             justify-content: center;
-            z-index: 1000;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
         .modal {
-            background-color: var(--primary-bg);
-            border-radius: 5px;
-            width: 400px;
-            max-width: 90%;
-            padding: 24px;
-        }
-        
-        .modal-header {
-            margin-bottom: 16px;
-            text-align: center;
-        }
-        
-        .modal-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        
-        .modal-subtitle {
-            color: var(--muted-text);
-            font-size: 14px;
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--muted-text);
-        }
-        
-        .form-input {
-            width: 100%;
-            background-color: var(--tertiary-bg);
-            border: 1px solid rgba(0, 0, 0, 0.3);
-            border-radius: 3px;
-            padding: 10px;
-            color: var(--text-color);
-            font-size: 14px;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-        
-        .form-checkbox-group {
-            display: flex;
-            align-items: center;
-        }
-        
-        .form-checkbox {
-            margin-right: 8px;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 24px;
-        }
-        
-        .modal-button {
-            padding: 8px 16px;
-            border-radius: 3px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.15s;
-        }
-        
-        .modal-cancel {
-            background-color: transparent;
-            color: var(--text-color);
-            border: none;
-            margin-right: 8px;
-        }
-        
-        .modal-cancel:hover {
-            text-decoration: underline;
-        }
-        
-        .modal-submit {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-        }
-        
-        .modal-submit:hover {
-            background-color: var(--hover-color);
-        }
-        
-        /* Password Modal */
-        .password-modal-overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
-            display: none;
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
         
-        /* Login Screen */
-        .login-container {
+        .modal-content {
+            background-color: var(--modal-bg);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            color: var(--text-color);
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+        
+        .checkbox-group {
             display: flex;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: var(--tertiary-bg);
+            margin-bottom: 20px;
         }
         
-        .login-form {
-            background-color: var(--primary-bg);
-            padding: 32px;
-            border-radius: 5px;
-            width: 400px;
-            max-width: 90%;
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
         }
         
-        .login-title {
-            font-size: 24px;
-            text-align: center;
-            margin-bottom: 24px;
-            color: white;
+        .chat-room {
+            display: none;
+            height: 100%;
+            flex-direction: column;
         }
         
-        .login-button {
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            position: relative;
+        }
+        
+        .message-username {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        .message-text {
+            background-color: var(--message-bg);
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            color: var(--text-color);
+        }
+        
+        .message.own-message {
+            margin-left: auto;
+        }
+        
+        .message.own-message .message-text {
+            background-color: var(--own-message-bg);
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .chat-input input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 12px;
-            background-color: var(--accent-color);
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .back-button {
+            background-color: transparent;
             color: white;
             border: none;
-            border-radius: 3px;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 20px;
             cursor: pointer;
-            transition: background-color 0.15s;
-            margin-top: 8px;
         }
         
-        .login-button:hover {
-            background-color: var(--hover-color);
+        .admin-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: none;
         }
-
-        /* Add Channel Button in Top Right */
-        .add-channel-top {
-            width: 32px;
-            height: 32px;
-            background-color: var(--accent-color);
+        
+        .admin-controls h3 {
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+        
+        .admin-panel {
+            display: none;
+        }
+        
+        .delete-btn {
+            background-color: var(--danger-color);
             color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #b91c1c;
+        }
+        
+        .message-delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
             border-radius: 50%;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 12px;
             cursor: pointer;
-            position: absolute;
-            top: 8px;
-            right: 16px;
-            z-index: 100;
-            transition: background-color 0.15s;
+            opacity: 0.6;
+            display: none;
         }
         
-        .add-channel-top:hover {
-            background-color: var(--hover-color);
+        .message-delete-btn:hover {
+            opacity: 1;
         }
-
-        /* Admin Panel Modal */
-        .admin-panel-modal {
-            display: none;
+        
+        .admin-badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 8px;
         }
     </style>
 </head>
 <body>
     <!-- Login Screen -->
-    <div id="login-screen" class="login-container">
-        <div class="login-form">
-            <h1 class="login-title">LAN Chat</h1>
-            <div class="form-group">
-                <label for="login-username" class="form-label">Kullanıcı Adı</label>
-                <input type="text" id="login-username" class="form-input" placeholder="Kullanıcı adınızı girin" required autofocus>
+    <div class="container">
+        <div class="login-screen" id="loginScreen">
+            <h1>Sınıf Sohbet Uygulaması</h1>
+            <div class="input-group">
+                <input type="text" id="usernameInput" placeholder="Kullanıcı adı girin" maxlength="20">
             </div>
-            <button id="login-button" class="login-button">Giriş Yap</button>
+            <div class="input-group" id="adminPasswordGroup" style="display: none;">
+                <input type="password" id="adminPasswordInput" placeholder="Admin şifresi girin">
+            </div>
+            <button id="loginBtn">Giriş Yap</button>
         </div>
-    </div>
-    
-    <!-- Main App -->
-    <div id="app-container" class="app-container" style="display: none;">
-        <!-- Add Channel Button -->
-        <div id="add-channel-top" class="add-channel-top">+</div>
-        
-        <!-- Sidebar with Servers -->
-        <div class="servers-sidebar">
-            <div class="home-button">LAN</div>
-            <div class="server-separator"></div>
+
+        <!-- Room List Screen -->
+        <div class="room-list" id="roomListScreen">
+            <div class="header">
+                <h2>Sohbet Odaları</h2>
+                <div>
+                    <span id="currentUsername"></span>
+                    <span id="adminBadge" class="admin-badge" style="display: none;">Admin</span>
+                </div>
+            </div>
+            <div id="roomsContainer">
+                <!-- Rooms will be added here -->
+            </div>
+            <div class="create-room-btn" id="createRoomBtn">+</div>
         </div>
-    
-        <!-- Channels Container -->
-        <div class="channels-container">
-            <div class="server-header">
-                LAN Chat
+
+        <!-- Chat Room Screen -->
+        <div class="chat-room" id="chatRoomScreen">
+            <div class="header">
+                <button class="back-button" id="backToRoomsBtn">←</button>
+                <h2 id="roomTitle">Oda</h2>
+                <span></span>
             </div>
-            
-            <div class="channel-list">
-                <div class="channel-category">
-                    <span>Metin Kanalları</span>
-                </div>
-                
-                <div class="channel-item active" data-channel="genel">
-                    <span class="channel-icon">#</span>
-                    <span class="channel-name">genel</span>
-                </div>
-                
-                <div class="channel-item" data-channel="duyurular">
-                    <span class="channel-icon">#</span>
-                    <span class="channel-name">duyurular</span>
-                </div>
-                
-                <div class="channel-item" data-channel="proje-a">
-                    <span class="channel-icon">#</span>
-                    <span class="channel-name">proje-a</span>
-                </div>
-                
-                <div class="channel-item" data-channel="proje-b">
-                    <span class="channel-icon">#</span>
-                    <span class="channel-name">proje-b</span>
-                </div>
-                
-                <div class="channel-item" data-channel="teknik-destek">
-                    <span class="channel-icon">#</span>
-                    <span class="channel-name">teknik-destek</span>
-                    <span class="locked-icon">🔒</span>
-                </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here -->
             </div>
-            
-            <div class="user-area">
-                <div class="user-avatar" id="current-user-avatar">A</div>
-                <div class="user-details">
-                    <div class="username" id="current-username">Kullanıcı</div>
-                    <div class="user-status">Çevrimiçi</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Chat Container -->
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="channel-title"># genel</div>
-                <div class="channel-topic">Genel sohbet kanalı</div>
-            </div>
-            
-            <div class="messages-container" id="messages-container">
-                <div class="message">
-                    <div class="message-avatar">S</div>
-                    <div class="message-content">
-                        <div class="message-header">
-                            <span class="message-author">Sistem</span>
-                            <span class="message-timestamp">Bugün, 12:00</span>
-                        </div>
-                        <div class="message-text">
-                            Hoş geldiniz! Bu LAN sohbet uygulamasında aynı ağa bağlı kişilerle iletişim kurabilirsiniz.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="input-container">
-                <textarea id="message-input" class="message-input" placeholder="Mesajınızı yazın..." rows="1"></textarea>
-            </div>
-        </div>
-        
-        <!-- Members List -->
-        <div class="members-list">
-            <div class="members-title">Çevrimiçi — 5</div>
-            
-            <div class="member-item">
-                <div class="member-avatar">A
-                    <div class="member-status"></div>
-                </div>
-                <div class="member-name" id="member-current-user">Kullanıcı</div>
-                <div class="admin-badge">ADMIN</div>
-            </div>
-            
-            <div class="member-item">
-                <div class="member-avatar">M
-                    <div class="member-status"></div>
-                </div>
-                <div class="member-name">Mehmet</div>
-            </div>
-            
-            <div class="member-item">
-                <div class="member-avatar">A
-                    <div class="member-status"></div>
-                </div>
-                <div class="member-name">Ayşe</div>
-            </div>
-            
-            <div class="member-item">
-                <div class="member-avatar">C
-                    <div class="member-status"></div>
-                </div>
-                <div class="member-name">Can</div>
-            </div>
-            
-            <div class="member-item">
-                <div class="member-avatar">E
-                    <div class="member-status"></div>
-                </div>
-                <div class="member-name">Elif</div>
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Mesajınızı yazın...">
+                <button id="sendMessageBtn">Gönder</button>
             </div>
         </div>
     </div>
-    
-    <!-- Create Channel Modal -->
-    <div id="create-channel-modal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">Kanal Oluştur</div>
-                <div class="modal-subtitle">Yeni bir metin kanalı oluştur</div>
+
+    <!-- Create Room Modal -->
+    <div class="modal" id="createRoomModal">
+        <div class="modal-content">
+            <h3>Yeni Oda Oluştur</h3>
+            <div class="input-group">
+                <input type="text" id="roomNameInput" placeholder="Oda adı">
             </div>
-            
-            <form id="create-channel-form">
-                <div class="form-group">
-                    <label for="channel-name" class="form-label">Kanal Adı</label>
-                    <input type="text" id="channel-name" class="form-input" placeholder="yeni-kanal" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="channel-topic" class="form-label">Kanal Konusu (İsteğe Bağlı)</label>
-                    <input type="text" id="channel-topic" class="form-input" placeholder="Bu kanal ne hakkında?">
-                </div>
-                
-                <div class="form-group form-checkbox-group">
-                    <input type="checkbox" id="channel-private" class="form-checkbox">
-                    <label for="channel-private">Özel kanal (şifre korumalı)</label>
-                </div>
-                
-                <div id="password-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="channel-password" class="form-label">Kanal Şifresi</label>
-                        <input type="password" id="channel-password" class="form-input">
-                    </div>
-                </div>
-                
-                <div class="modal-buttons">
-                    <button type="button" id="cancel-create-channel" class="modal-button modal-cancel">İptal</button>
-                    <button type="submit" class="modal-button modal-submit">Oluştur</button>
-                </div>
-            </form>
+            <div class="checkbox-group">
+                <input type="checkbox" id="passwordCheckbox">
+                <label for="passwordCheckbox">Şifreli oda</label>
+            </div>
+            <div class="input-group" id="passwordInputGroup" style="display: none;">
+                <input type="password" id="roomPasswordInput" placeholder="Oda şifresi">
+            </div>
+            <button id="createRoomSubmitBtn">Oluştur</button>
+            <button id="cancelCreateRoomBtn" style="background-color: #666; margin-left: 10px;">İptal</button>
         </div>
     </div>
-    
+
     <!-- Password Modal -->
-    <div id="password-modal" class="password-modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">Şifre Gerekli</div>
-                <div class="modal-subtitle">Bu kanala erişmek için şifre girin</div>
+    <div class="password-modal" id="passwordModal">
+        <div class="modal-content">
+            <h3>Şifreli Oda</h3>
+            <div class="input-group">
+                <input type="password" id="enterPasswordInput" placeholder="Oda şifresini girin">
             </div>
-            
-            <form id="password-form">
-                <div class="form-group">
-                    <label for="enter-password" class="form-label">Şifre</label>
-                    <input type="password" id="enter-password" class="form-input" required>
-                </div>
-                
-                <div class="modal-buttons">
-                    <button type="button" id="cancel-password" class="modal-button modal-cancel">İptal</button>
-                    <button type="submit" class="modal-button modal-submit">Giriş</button>
-                </div>
-            </form>
+            <button id="submitPasswordBtn">Giriş Yap</button>
+            <button id="cancelPasswordBtn" style="background-color: #666; margin-left: 10px;">İptal</button>
         </div>
     </div>
 
-    <!-- Admin Panel Modal -->
-    <div id="admin-panel-modal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">Admin Paneli</div>
-                <div class="modal-subtitle">Kanal Yönetimi</div>
-            </div>
-            
-            <form id="admin-panel-form">
-                <div class="form-group">
-                    <label for="channel-to-delete" class="form-label">Silinecek Kanal</label>
-                    <select id="channel-to-delete" class="form-input">
-                        <option value="genel">genel</option>
-                        <option value="duyurular">duyurular</option>
-                        <option value="proje-a">proje-a</option>
-                        <option value="proje-b">proje-b</option>
-                        <option value="teknik-destek">teknik-destek</option>
-                    </select>
-                </div>
-                
-                <div class="modal-buttons">
-                    <button type="button" id="cancel-admin-panel" class="modal-button modal-cancel">İptal</button>
-                    <button type="submit" class="modal-button modal-submit">Kanalı Sil</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // DOM Elements
-            const loginScreen = document.getElementById('login-screen');
-            const appContainer = document.getElementById('app-container');
-            const loginUsername = document.getElementById('login-username');
-            const loginButton = document.getElementById('login-button');
-            const currentUsername = document.getElementById('current-username');
-            const memberCurrentUser  = document.getElementById('member-current-user');
-            const currentUser Avatar = document.getElementById('current-user-avatar');
-            const messageInput = document.getElementById('message-input');
-            const messagesContainer = document.getElementById('messages-container');
-            const addChannelTopBtn = document.getElementById('add-channel-top');
-            const createChannelModal = document.getElementById('create-channel-modal');
-            const createChannelForm = document.getElementById('create-channel-form');
-            const cancelCreateChannel = document.getElementById('cancel-create-channel');
-            const channelPrivate = document.getElementById('channel-private');
-            const passwordFields = document.getElementById('password-fields');
-            const passwordModal = document.getElementById('password-modal');
-            const passwordForm = document.getElementById('password-form');
-            const cancelPassword = document.getElementById('cancel-password');
-            const channelItems = document.querySelectorAll('.channel-item');
-            const adminPanelModal = document.getElementById('admin-panel-modal');
-            const adminPanelForm = document.getElementById('admin-panel-form');
-            const cancelAdminPanel = document.getElementById('cancel-admin-panel');
+        // Store app data
+        const appData = {
+            currentUser: '',
+            isAdmin: false,
+            rooms: [],
+            currentRoom: null,
+            messages: {}
+        };
 
-            // Variables
-            let currentChannel = 'genel';
-            const channelPasswords = {};
-            const fixedUsername = "Kullanıcı"; // Sabit kullanıcı adı
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const roomListScreen = document.getElementById('roomListScreen');
+        const chatRoomScreen = document.getElementById('chatRoomScreen');
+        const usernameInput = document.getElementById('usernameInput');
+        const adminPasswordGroup = document.getElementById('adminPasswordGroup');
+        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const currentUsername = document.getElementById('currentUsername');
+        const adminBadge = document.getElementById('adminBadge');
+        const roomsContainer = document.getElementById('roomsContainer');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const createRoomModal = document.getElementById('createRoomModal');
+        const roomNameInput = document.getElementById('roomNameInput');
+        const passwordCheckbox = document.getElementById('passwordCheckbox');
+        const passwordInputGroup = document.getElementById('passwordInputGroup');
+        const roomPasswordInput = document.getElementById('roomPasswordInput');
+        const createRoomSubmitBtn = document.getElementById('createRoomSubmitBtn');
+        const cancelCreateRoomBtn = document.getElementById('cancelCreateRoomBtn');
+        const roomTitle = document.getElementById('roomTitle');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const backToRoomsBtn = document.getElementById('backToRoomsBtn');
+        const passwordModal = document.getElementById('passwordModal');
+        const enterPasswordInput = document.getElementById('enterPasswordInput');
+        const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+        const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
 
-            // Login Handler
-            loginButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                // Sabit kullanıcı adı kullanılıyor
-                loginScreen.style.display = 'none';
-                appContainer.style.display = 'flex';
-                
-                // Kullanıcı adı görüntüleme
-                currentUsername.textContent = fixedUsername;
-                memberCurrentUser .textContent = fixedUsername;
-                currentUser Avatar.textContent = fixedUsername.charAt(0).toUpperCase();
-            });
-            
-            // Get Current Timestamp
-            function getCurrentTime() {
-                const now = new Date();
-                const hours = now.getHours().toString().padStart(2, '0');
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                return `Bugün, ${hours}:${minutes}`;
+        // Admin constants
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'Asab!_0yuncu';
+
+        // Since localStorage isn't available, we'll use in-memory storage only
+        function loadData() {
+            // Initialize with empty data or default rooms if needed
+            // No loading from storage in this version
+        }
+
+        // No need to save data since we're using memory only
+        function saveData() {
+            // This function is kept for compatibility, but does nothing
+        }
+
+        // Check if username is admin
+        usernameInput.addEventListener('input', () => {
+            const username = usernameInput.value.trim();
+            if (username === ADMIN_USERNAME) {
+                adminPasswordGroup.style.display = 'block';
+            } else {
+                adminPasswordGroup.style.display = 'none';
             }
-            
-            // Send Message Handler
-            messageInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    
-                    const message = messageInput.value.trim();
-                    if (message) {
-                        // Create new message element
-                        const messageElement = document.createElement('div');
-                        messageElement.className = 'message';
-                        
-                        messageElement.innerHTML = `
-                            <div class="message-avatar">${currentUsername.textContent.charAt(0).toUpperCase()}</div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-author">${currentUsername.textContent}</span>
-                                    <span class="message-timestamp">${getCurrentTime()}</span>
-                                </div>
-                                <div class="message-text">${message}</div>
-                            </div>
-                        `;
-                        
-                        messagesContainer.appendChild(messageElement);
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                        messageInput.value = '';
-                    }
-                }
-            });
-            
-            // Auto-resize textarea
-            messageInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            
-            // Channel Switch
-            function switchChannel(channelName, isPrivate = false, password = null) {
-                if (isPrivate && password) {
-                    const enteredPassword = prompt("Bu kanal şifre korumalı. Lütfen şifreyi girin:");
-                    if (enteredPassword !== password) {
-                        alert("Yanlış şifre!");
+        });
+
+        // Login functionality
+        loginBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            if (username) {
+                // Check if admin login
+                if (username === ADMIN_USERNAME) {
+                    const adminPassword = adminPasswordInput.value;
+                    if (adminPassword === ADMIN_PASSWORD) {
+                        appData.isAdmin = true;
+                        adminBadge.style.display = 'inline';
+                    } else {
+                        alert('Hatalı admin şifresi!');
                         return;
                     }
                 }
                 
-                // Update active channel UI
-                channelItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.channel === channelName) {
-                        item.classList.add('active');
-                    }
-                });
-                
-                // Update channel header
-                document.querySelector('.channel-title').textContent = `# ${channelName}`;
-                
-                // Clear messages and add system message for channel switch
-                messagesContainer.innerHTML = '';
-                
-                const systemMessage = document.createElement('div');
-                systemMessage.className = 'message';
-                systemMessage.innerHTML = `
-                    <div class="message-avatar">S</div>
-                    <div class="message-content">
-                        <div class="message-header">
-                            <span class="message-author">Sistem</span>
-                            <span class="message-timestamp">${getCurrentTime()}</span>
-                        </div>
-                        <div class="message-text">
-                            <strong># ${channelName}</strong> kanalına hoş geldiniz!
-                        </div>
-                    </div>
-                `;
-                
-                messagesContainer.appendChild(systemMessage);
-                currentChannel = channelName;
+                appData.currentUser = username;
+                currentUsername.textContent = username;
+                loginScreen.style.display = 'none';
+                roomListScreen.style.display = 'block';
+                updateRoomList();
+            }
+        });
+
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+
+        adminPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+
+        // Update room list
+        function updateRoomList() {
+            roomsContainer.innerHTML = '';
+            
+            if (appData.rooms.length === 0) {
+                const noRoomsMessage = document.createElement('p');
+                noRoomsMessage.textContent = 'Henüz hiç oda oluşturulmamış';
+                noRoomsMessage.style.textAlign = 'center';
+                noRoomsMessage.style.marginTop = '20px';
+                noRoomsMessage.style.color = '#aaa';
+                roomsContainer.appendChild(noRoomsMessage);
+                return;
             }
             
-            // Add click handlers to existing channels
-            channelItems.forEach(channel => {
-                channel.addEventListener('click', function() {
-                    const channelName = this.dataset.channel;
-                    const isLocked = this.querySelector('.locked-icon') !== null;
-                    
-                    if (isLocked) {
-                        const password = channelPasswords[channelName] || 'password123'; // Default password for demo
-                        switchChannel(channelName, true, password);
+            appData.rooms.forEach(room => {
+                const roomElement = document.createElement('div');
+                roomElement.className = 'room';
+                roomElement.dataset.roomId = room.id;
+                
+                const leftPart = document.createElement('div');
+                const roomName = document.createElement('div');
+                roomName.textContent = room.name;
+                leftPart.appendChild(roomName);
+                
+                const roomInfo = document.createElement('div');
+                if (room.hasPassword) {
+                    roomInfo.textContent = '🔒';
+                    roomInfo.style.color = '#aaa';
+                }
+                
+                roomElement.appendChild(leftPart);
+                roomElement.appendChild(roomInfo);
+                
+                roomElement.addEventListener('click', () => {
+                    if (room.hasPassword && !appData.isAdmin) {
+                        showPasswordModal(room);
                     } else {
-                        switchChannel(channelName);
+                        enterRoom(room);
                     }
                 });
-            });
-            
-            // Create Channel Modal Handlers
-            addChannelTopBtn.addEventListener('click', function() {
-                createChannelModal.style.display = 'flex';
-            });
-            
-            cancelCreateChannel.addEventListener('click', function() {
-                createChannelModal.style.display = 'none';
-            });
-            
-            // Toggle password fields
-            channelPrivate.addEventListener('change', function() {
-                passwordFields.style.display = this.checked ? 'block' : 'none';
-            });
-            
-            // Create New Channel
-            createChannelForm.addEventListener('submit', function(e) {
-                e.preventDefault();
                 
-                const channelNameInput = document.getElementById('channel-name');
-                const channelTopicInput = document.getElementById('channel-topic');
-                const passwordInput = document.getElementById('channel-password');
+                // Add delete button for admin
+                if (appData.isAdmin) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = 'Sil';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent room click
+                        deleteRoom(room.id);
+                    });
+                    roomElement.appendChild(deleteBtn);
+                }
                 
-                const channelName = channelNameInput.value.trim();
-                const channelTopic = channelTopicInput.value.trim();
-                const isPrivate = channelPrivate.checked;
-                const password = isPrivate ? passwordInput.value.trim() : null;
-
-                // Kanal oluşturma işlemi burada yapılacak
-                alert(`Kanal oluşturuldu: ${channelName} - ${channelTopic} ${isPrivate ? '(Özel)' : ''}`);
-                
-                // Kanalı listeye ekleme (örnek)
-                const newChannelItem = document.createElement('div');
-                newChannelItem.className = 'channel-item';
-                newChannelItem.dataset.channel = channelName;
-                newChannelItem.innerHTML = `<span class="channel-icon">#</span><span class="channel-name">${channelName}</span>`;
-                document.querySelector('.channel-list').appendChild(newChannelItem);
-                
-                createChannelModal.style.display = 'none';
-                channelNameInput.value = '';
-                channelTopicInput.value = '';
-                passwordInput.value = '';
-                channelPrivate.checked = false;
-                passwordFields.style.display = 'none';
+                roomsContainer.appendChild(roomElement);
             });
+        }
 
-            // Admin Paneli Açma
-            const adminPanelBtn = document.getElementById('admin-panel-btn'); // Admin paneli açma butonu
-            adminPanelBtn.addEventListener('click', function() {
-                adminPanelModal.style.display = 'flex';
-            });
+        // Delete room (admin only)
+        function deleteRoom(roomId) {
+            if (!appData.isAdmin) return;
+            
+            const index = appData.rooms.findIndex(r => r.id === roomId);
+            if (index !== -1) {
+                appData.rooms.splice(index, 1);
+                delete appData.messages[roomId];
+                saveData();
+                updateRoomList();
+            }
+        }
 
-            // Admin panelini kapat
-            cancelAdminPanel.addEventListener('click', function() {
-                adminPanelModal.style.display = 'none';
-            });
-
-            // Kanal silme işlemi
-            adminPanelForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const channelToDelete = document.getElementById('channel-to-delete').value;
-                // Kanal silme işlemi burada yapılacak
-                alert(`${channelToDelete} kanalı silindi!`);
-                adminPanelModal.style.display = 'none';
-            });
+        // Create room modal
+        createRoomBtn.addEventListener('click', () => {
+            createRoomModal.style.display = 'flex';
+            roomNameInput.value = '';
+            passwordCheckbox.checked = false;
+            passwordInputGroup.style.display = 'none';
+            roomPasswordInput.value = '';
         });
+
+        passwordCheckbox.addEventListener('change', () => {
+            passwordInputGroup.style.display = passwordCheckbox.checked ? 'block' : 'none';
+        });
+
+        cancelCreateRoomBtn.addEventListener('click', () => {
+            createRoomModal.style.display = 'none';
+        });
+
+        createRoomSubmitBtn.addEventListener('click', () => {
+            const roomName = roomNameInput.value.trim();
+            if (roomName) {
+                const hasPassword = passwordCheckbox.checked;
+                const password = hasPassword ? roomPasswordInput.value : '';
+                
+                if (hasPassword && !password) {
+                    alert('Lütfen bir şifre belirleyin');
+                    return;
+                }
+                
+                const newRoom = {
+                    id: Date.now().toString(),
+                    name: roomName,
+                    hasPassword: hasPassword,
+                    password: password,
+                    createdBy: appData.currentUser
+                };
+                
+                appData.rooms.push(newRoom);
+                appData.messages[newRoom.id] = [];
+                saveData();
+                updateRoomList();
+                createRoomModal.style.display = 'none';
+            }
+        });
+
+        // Password modal
+        function showPasswordModal(room) {
+            passwordModal.style.display = 'flex';
+            enterPasswordInput.value = '';
+            
+            // Store the room to enter after password check
+            passwordModal.dataset.roomId = room.id;
+        }
+
+        submitPasswordBtn.addEventListener('click', () => {
+            const roomId = passwordModal.dataset.roomId;
+            const room = appData.rooms.find(r => r.id === roomId);
+            const enteredPassword = enterPasswordInput.value;
+            
+            if (room && enteredPassword === room.password) {
+                passwordModal.style.display = 'none';
+                enterRoom(room);
+            } else {
+                alert('Yanlış şifre');
+            }
+        });
+
+        cancelPasswordBtn.addEventListener('click', () => {
+            passwordModal.style.display = 'none';
+        });
+
+        // Enter chat room
+        function enterRoom(room) {
+            appData.currentRoom = room;
+            roomTitle.textContent = room.name;
+            roomListScreen.style.display = 'none';
+            chatRoomScreen.style.display = 'flex';
+            
+            // Initialize messages array if it doesn't exist
+            if (!appData.messages[room.id]) {
+                appData.messages[room.id] = [];
+            }
+            
+            updateMessages();
+        }
+
+        // Back to room list
+        backToRoomsBtn.addEventListener('click', () => {
+            chatRoomScreen.style.display = 'none';
+            roomListScreen.style.display = 'block';
+            appData.currentRoom = null;
+        });
+
+        // Send message
+        sendMessageBtn.addEventListener('click', () => {
+            sendMessage();
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const messageText = messageInput.value.trim();
+            if (messageText && appData.currentRoom) {
+                const newMessage = {
+                    id: Date.now().toString(),
+                    username: appData.currentUser,
+                    text: messageText,
+                    timestamp: new Date().toISOString(),
+                    isAdmin: appData.isAdmin
+                };
+                
+                appData.messages[appData.currentRoom.id].push(newMessage);
+                saveData();
+                messageInput.value = '';
+                updateMessages();
+            }
+        }
+
+        // Delete message (admin only)
+        function deleteMessage(roomId, messageId) {
+            if (!appData.isAdmin) return;
+            
+            const roomMessages = appData.messages[roomId];
+            if (roomMessages) {
+                const index = roomMessages.findIndex(m => m.id === messageId);
+                if (index !== -1) {
+                    roomMessages.splice(index, 1);
+                    saveData();
+                    updateMessages();
+                }
+            }
+        }
+
+        // Update messages in chat
+        function updateMessages() {
+            chatMessages.innerHTML = '';
+            
+            if (appData.currentRoom) {
+                const roomMessages = appData.messages[appData.currentRoom.id] || [];
+                
+                if (roomMessages.length === 0) {
+                    const noMessagesElement = document.createElement('div');
+                    noMessagesElement.textContent = 'Henüz mesaj yok. İlk mesajı gönderen sen ol!';
+                    noMessagesElement.style.textAlign = 'center';
+                    noMessagesElement.style.color = '#aaa';
+                    noMessagesElement.style.marginTop = '20px';
+                    chatMessages.appendChild(noMessagesElement);
+                } else {
+                    roomMessages.forEach(message => {
+                        const messageElement = document.createElement('div');
+                        messageElement.className = 'message';
+                        messageElement.dataset.messageId = message.id;
+                        
+                        if (message.username === appData.currentUser) {
+                            messageElement.classList.add('own-message');
+                        }
+                        
+                        const usernameElement = document.createElement('div');
+                        usernameElement.className = 'message-username';
+                        
+                        if (message.isAdmin) {
+                            usernameElement.textContent = message.username + ' (Admin)';
+                        } else {
+                            usernameElement.textContent = message.username;
+                        }
+                        
+                        const textElement = document.createElement('div');
+                        textElement.className = 'message-text';
+                        textElement.textContent = message.text;
+                        
+                        messageElement.appendChild(usernameElement);
+                        messageElement.appendChild(textElement);
+                        
+                        // Add delete button for admin
+                        if (appData.isAdmin) {
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'message-delete-btn';
+                            deleteBtn.textContent = 'x';
+                            deleteBtn.style.display = 'block';
+                            deleteBtn.addEventListener('click', () => {
+                                deleteMessage(appData.currentRoom.id, message.id);
+                            });
+                            messageElement.appendChild(deleteBtn);
+                        }
+                        
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }
+        }
+
+        // Initialize app
+        function init() {
+            loadData();
+        }
+
+        init();
     </script>
 </body>
 </html>
