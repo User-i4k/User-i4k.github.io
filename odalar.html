@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Oda Oluştur</title>
+  <title>Oda Seç</title>
   <style>
     body {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
@@ -11,13 +11,11 @@
       text-align: center;
       margin-top: 50px;
     }
-
     h2 {
       font-size: 28px;
       margin-bottom: 30px;
     }
-
-    input[type="text"] {
+    input[type="text"], input[type="password"] {
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
@@ -26,7 +24,6 @@
       outline: none;
       margin-bottom: 20px;
     }
-
     button {
       padding: 12px 30px;
       background-color: #00b894;
@@ -37,7 +34,6 @@
       cursor: pointer;
       transition: 0.3s ease;
     }
-
     button:hover {
       background-color: #019875;
     }
@@ -46,41 +42,34 @@
 <body>
   <h2>Oda Oluştur</h2>
 
-  <input type="text" id="roomNameInput" placeholder="Oda İsmi" />
-  <input type="text" id="roomPasswordInput" placeholder="Oda Şifresi" />
+  <input type="text" id="roomNameInput" placeholder="Oda Adı" />
+  <input type="password" id="roomPasswordInput" placeholder="Oda Şifresi (isteğe bağlı)" />
   <button onclick="createRoom()">Oda Oluştur</button>
 
   <script type="module">
-    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
-    import { app } from './app.js';  // Firebase'i başlatan dosya
+    import { db } from './app.js';
+    import { ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
-    const db = getDatabase(app);
-
-    // Oda oluşturma fonksiyonu
     function createRoom() {
-      const roomName = document.getElementById("roomNameInput").value.trim();
-      const password = document.getElementById("roomPasswordInput").value.trim();
+      const roomName = document.getElementById('roomNameInput').value.trim();
+      const password = document.getElementById('roomPasswordInput').value.trim();
 
       if (!roomName) {
-        alert("Oda ismi boş olamaz!");
+        alert('Oda adı boş olamaz!');
         return;
       }
 
       const roomRef = ref(db, 'rooms/' + roomName);
-      const newRoom = {
+      set(roomRef, {
         name: roomName,
-        password: password,
-        createdBy: localStorage.getItem("username"),
-      };
-
-      set(roomRef, newRoom)
-        .then(() => {
-          alert("Oda başarıyla oluşturuldu!");
-          window.location.href = "sohbet.html?room=" + roomName + "&password=" + password;
-        })
-        .catch((error) => {
-          alert("Oda oluşturulurken bir hata oluştu: " + error.message);
-        });
+        password: password || null,
+      }).then(() => {
+        alert('Oda başarıyla oluşturuldu!');
+        window.location.href = 'sohbet.html?room=' + roomName + '&password=' + password;
+      }).catch((error) => {
+        console.error('Oda oluşturulurken hata oluştu:', error);
+        alert('Oda oluşturulurken hata oluştu.');
+      });
     }
   </script>
 </body>
