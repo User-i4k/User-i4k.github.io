@@ -2,19 +2,28 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Giriş Yap</title>
+  <title>Sohbet Odası</title>
   <style>
     body {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 100px;
+      margin-top: 50px;
     }
 
     h2 {
       font-size: 28px;
       margin-bottom: 30px;
+    }
+
+    #messages {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #203a43;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: scroll;
     }
 
     input[type="text"] {
@@ -44,38 +53,42 @@
   </style>
 </head>
 <body>
-  <h2>Kullanıcı Adı Gir</h2>
-  <input type="text" id="username" placeholder="Kullanıcı adı" />
-  <br>
-  <button onclick="login()">Giriş</button>
+  <h2>Sohbet Odası: <span id="roomName"></span></h2>
+  
+  <div id="messages">
+    <!-- Mesajlar burada görünecek -->
+  </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+  <input type="text" id="messageInput" placeholder="Mesajınızı yazın" />
+  <button onclick="sendMessage()">Mesaj Gönder</button>
 
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
-      authDomain: "okul-sohbet-794d0.firebaseapp.com",
-      databaseURL: "https://okul-sohbet-794d0-default-rtdb.firebaseio.com",
-      projectId: "okul-sohbet-794d0",
-      storageBucket: "okul-sohbet-794d0.firebasestorage.app",
-      messagingSenderId: "849190115812",
-      appId: "1:849190115812:web:70e78485af056296720ff1"
-    };
+  <script>
+    // Oda adı ve kullanıcı adını URL'den alıyoruz
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomName = urlParams.get('room');
+    const username = localStorage.getItem("username");
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    if (!username) {
+      alert("Lütfen giriş yapın.");
+      window.location.href = "index.html";
+    }
 
-    function login() {
-      const username = document.getElementById("username").value;
-      if (!username) {
-        alert("Lütfen kullanıcı adı girin.");
+    // Oda adını sayfada göster
+    document.getElementById("roomName").innerText = roomName;
+
+    // Mesaj gönderme
+    function sendMessage() {
+      const message = document.getElementById("messageInput").value.trim();
+      if (!message) {
+        alert("Mesaj boş olamaz.");
         return;
       }
-      localStorage.setItem("username", username);
-      window.location.href = "odalar.html";
+
+      // Burada Firebase'e mesaj ekleyebilirsiniz (veya başka bir işlem yapabilirsiniz)
+      const messageElement = document.createElement("div");
+      messageElement.textContent = `${username}: ${message}`;
+      document.getElementById("messages").appendChild(messageElement);
+      document.getElementById("messageInput").value = ""; // Mesaj kutusunu temizle
     }
   </script>
 </body>
