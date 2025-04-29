@@ -42,36 +42,35 @@
       background-color: #019875;
     }
 
-    .roomList {
+    .room-list {
       margin-top: 20px;
     }
 
-    .roomList div {
-      margin: 10px 0;
-      background: #34495e;
-      padding: 10px;
-      border-radius: 5px;
+    .room {
+      background-color: #3f5b66;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 5px 0;
+      cursor: pointer;
+      transition: 0.3s ease;
     }
 
-    .roomList div:hover {
-      background: #2c3e50;
-      cursor: pointer;
+    .room:hover {
+      background-color: #4d707d;
     }
   </style>
 </head>
 <body>
-  <h2>Hoş Geldin, <span id="usernameDisplay"></span></h2>
-  <input type="text" id="roomName" placeholder="Yeni Oda Adı" />
-  <input type="text" id="roomPassword" placeholder="Oda Şifresi (isteğe bağlı)" />
+  <h2>Hoş geldin, <span id="username"></span></h2>
+  <input type="text" id="roomName" placeholder="Yeni oda adı..." />
   <button onclick="createRoom()">Oda Oluştur</button>
 
-  <div class="roomList" id="roomList"></div>
+  <div class="room-list" id="roomList"></div>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    import { getDatabase, ref, set, push, onValue, query, orderByChild } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
+    import { getDatabase, ref, set, child, get } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
@@ -80,83 +79,65 @@
       projectId: "okul-sohbet-794d0",
       storageBucket: "okul-sohbet-794d0.firebasestorage.app",
       messagingSenderId: "849190115812",
-      appId: "1:849190115812:web:70e78485af056296720ff1"
+      appId: "1:849190115812:web:70e78485af056296720ff1",
+      measurementId: "G-SLWK3XCYMH"
     };
 
-    // Firebase'i başlat
+    // Firebase'i Başlat
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const auth = getAuth(app);
 
-    // Kullanıcı doğrulaması
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const username = user.displayName || user.email;
-        document.getElementById("usernameDisplay").innerText = username;
+    // Kullanıcı adı al
+    const username = localStorage.getItem('username');
+    document.getElementById("username").textContent = username;
 
-        // Kullanıcı adı localStorage'de saklanır
-        localStorage.setItem("username", username);
-
-        loadRooms(); // Odaları yükle
-      } else {
-        alert("Giriş yapmadınız!");
-        window.location.href = "index.html";
-      }
-    });
-
-    // Oda oluşturma
+    // Oda Oluşturma Fonksiyonu
     function createRoom() {
-      const roomName = document.getElementById("roomName").value.trim();
-      const roomPassword = document.getElementById("roomPassword").value.trim();
-      const username = localStorage.getItem("username");
-
+      const roomName = document.getElementById("roomName").value;
       if (!roomName) {
         alert("Oda adı girin.");
         return;
       }
 
+      // Oda adıyla veritabanına yeni oda ekle
       const roomRef = ref(db, 'rooms/' + roomName);
-      const roomData = {
+      set(roomRef, {
         name: roomName,
-        password: roomPassword, // Şifre varsa, boş bırakılabilir
         createdBy: username
-      };
-
-      set(roomRef, roomData).then(() => {
-        alert("Oda oluşturuldu!");
-        loadRooms(); // Oda oluşturulunca listeyi güncelle
+      }).then(() => {
+        console.log('Oda başarıyla oluşturuldu.');
+        // Odanın listeye eklenmesi
+        displayRooms();
       }).catch((error) => {
-        console.error("Oda oluşturulamadı:", error);
+        console.error('Oda oluşturulurken hata oluştu: ', error);
       });
     }
 
-    // Odaları yükleme
-    function loadRooms() {
-      const roomsRef = query(ref(db, 'rooms'), orderByChild('name'));
-      onValue(roomsRef, (snapshot) => {
-        const roomsContainer = document.getElementById("roomList");
-        roomsContainer.innerHTML = ''; // Önceki odaları temizle
+    // Odaları listeleme
+    function displayRooms() {
+      const roomListRef = ref(db, 'rooms');
+      get(roomListRef).then((snapshot) => {
+        const roomList = snapshot.val();
+        const roomListElement = document.getElementById("roomList");
+        roomListElement.innerHTML = ''; // Listeyi sıfırla
 
-        const data = snapshot.val();
-        if (data) {
-          Object.values(data).forEach(room => {
-            const roomDiv = document.createElement("div");
-            roomDiv.innerText = `🗨️ ${room.name} (Oluşturan: ${room.createdBy})`;
-            roomDiv.onclick = () => {
-              const enteredPassword = prompt("Şifre girin:");
-              if (enteredPassword === room.password || !room.password) {
-                window.location.href = `sohbet.html?oda=${room.name}`;
-              } else {
-                alert("Yanlış şifre!");
-              }
-            };
-            roomsContainer.appendChild(roomDiv);
-          });
-        } else {
-          roomsContainer.innerHTML = "<p>Henüz oda bulunmamaktadır.</p>";
+        // Her bir odayı ekle
+        for (let room in roomList) {
+          const roomElement = document.createElement('div');
+          roomElement.classList.add('room');
+          roomElement.textContent = roomList[room].name;
+          roomElement.onclick = function() {
+            window.location.href = "sohbet.html?room=" + room; // Odaya git
+          };
+          roomListElement.appendChild(roomElement);
         }
+      }).catch((error) => {
+        console.error("Odalar alınırken hata oluştu: ", error);
       });
     }
+
+    // Sayfa yüklendiğinde odaları listele
+    window.onload = displayRooms;
   </script>
 </body>
 </html>
