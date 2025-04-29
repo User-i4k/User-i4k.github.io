@@ -2,28 +2,19 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Sohbet Odası</title>
+  <title>Giriş Yap</title>
   <style>
     body {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 100px;
     }
 
     h2 {
       font-size: 28px;
       margin-bottom: 30px;
-    }
-
-    #messages {
-      margin-top: 30px;
-      padding: 20px;
-      background-color: #203a43;
-      border-radius: 8px;
-      max-height: 300px;
-      overflow-y: scroll;
     }
 
     input[type="text"] {
@@ -53,42 +44,26 @@
   </style>
 </head>
 <body>
-  <h2>Sohbet Odası: <span id="roomName"></span></h2>
-  
-  <div id="messages">
-    <!-- Mesajlar burada görünecek -->
-  </div>
-
-  <input type="text" id="messageInput" placeholder="Mesajınızı yazın" />
-  <button onclick="sendMessage()">Mesaj Gönder</button>
+  <h2>Kullanıcı Adı Girin</h2>
+  <input type="text" id="username" placeholder="Kullanıcı adı" />
+  <br>
+  <button onclick="login()">Giriş Yap</button>
 
   <script>
-    // Oda adı ve kullanıcı adını URL'den alıyoruz
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomName = urlParams.get('room');
-    const username = localStorage.getItem("username");
+    // Kullanıcı adı ile giriş işlemi
+    function login() {
+      const username = document.getElementById("username").value;
 
-    if (!username) {
-      alert("Lütfen giriş yapın.");
-      window.location.href = "index.html";
-    }
-
-    // Oda adını sayfada göster
-    document.getElementById("roomName").innerText = roomName;
-
-    // Mesaj gönderme
-    function sendMessage() {
-      const message = document.getElementById("messageInput").value.trim();
-      if (!message) {
-        alert("Mesaj boş olamaz.");
+      if (!username) {
+        alert("Lütfen kullanıcı adı girin.");
         return;
       }
 
-      // Burada Firebase'e mesaj ekleyebilirsiniz (veya başka bir işlem yapabilirsiniz)
-      const messageElement = document.createElement("div");
-      messageElement.textContent = `${username}: ${message}`;
-      document.getElementById("messages").appendChild(messageElement);
-      document.getElementById("messageInput").value = ""; // Mesaj kutusunu temizle
+      // Kullanıcı adını localStorage'a kaydediyoruz
+      localStorage.setItem("username", username);
+
+      // Kullanıcıyı odalar sayfasına yönlendiriyoruz
+      window.location.href = "odalar.html";
     }
   </script>
 </body>
