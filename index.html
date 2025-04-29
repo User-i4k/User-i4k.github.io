@@ -47,7 +47,7 @@
   <h2>Kullanıcı Adı Gir</h2>
   <input type="text" id="username" placeholder="Kullanıcı adı" />
   <br>
-  <button onclick="login()">Giriş</button>
+  <button id="loginButton">Giriş</button>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -72,7 +72,7 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // Giriş Fonksiyonu
+    // Kullanıcı Adını Kaydet ve Yönlendirme
     function login() {
       const username = document.getElementById("username").value;
       if (!username) {
@@ -86,6 +86,16 @@
       // Odanın ID'sini ve kullanıcı adıyla giriş işlemi
       window.location.href = "odalar.html";
     }
+
+    // Giriş butonuna tıklama event listener'ı ekliyoruz
+    document.getElementById("loginButton").addEventListener("click", login);
+
+    // Enter tuşuyla giriş yapabilmek için:
+    document.getElementById("username").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        login(); // Login fonksiyonunu çağır
+      }
+    });
   </script>
 </body>
 </html>
