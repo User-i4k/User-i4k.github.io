@@ -545,6 +545,11 @@
         .add-channel-top:hover {
             background-color: var(--hover-color);
         }
+
+        /* Admin Panel Modal */
+        .admin-panel-modal {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -747,6 +752,34 @@
             </form>
         </div>
     </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="admin-panel-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Admin Paneli</div>
+                <div class="modal-subtitle">Kanal Yönetimi</div>
+            </div>
+            
+            <form id="admin-panel-form">
+                <div class="form-group">
+                    <label for="channel-to-delete" class="form-label">Silinecek Kanal</label>
+                    <select id="channel-to-delete" class="form-input">
+                        <option value="genel">genel</option>
+                        <option value="duyurular">duyurular</option>
+                        <option value="proje-a">proje-a</option>
+                        <option value="proje-b">proje-b</option>
+                        <option value="teknik-destek">teknik-destek</option>
+                    </select>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="button" id="cancel-admin-panel" class="modal-button modal-cancel">İptal</button>
+                    <button type="submit" class="modal-button modal-submit">Kanalı Sil</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -756,8 +789,8 @@
             const loginUsername = document.getElementById('login-username');
             const loginButton = document.getElementById('login-button');
             const currentUsername = document.getElementById('current-username');
-            const memberCurrentUser = document.getElementById('member-current-user');
-            const currentUserAvatar = document.getElementById('current-user-avatar');
+            const memberCurrentUser  = document.getElementById('member-current-user');
+            const currentUser Avatar = document.getElementById('current-user-avatar');
             const messageInput = document.getElementById('message-input');
             const messagesContainer = document.getElementById('messages-container');
             const addChannelTopBtn = document.getElementById('add-channel-top');
@@ -770,24 +803,26 @@
             const passwordForm = document.getElementById('password-form');
             const cancelPassword = document.getElementById('cancel-password');
             const channelItems = document.querySelectorAll('.channel-item');
-            
+            const adminPanelModal = document.getElementById('admin-panel-modal');
+            const adminPanelForm = document.getElementById('admin-panel-form');
+            const cancelAdminPanel = document.getElementById('cancel-admin-panel');
+
             // Variables
             let currentChannel = 'genel';
             const channelPasswords = {};
-            
+            const fixedUsername = "Kullanıcı"; // Sabit kullanıcı adı
+
             // Login Handler
             loginButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                const username = loginUsername.value.trim();
-                if (username) {
-                    loginScreen.style.display = 'none';
-                    appContainer.style.display = 'flex';
-                    
-                    // Update username display
-                    currentUsername.textContent = username;
-                    memberCurrentUser.textContent = username;
-                    currentUserAvatar.textContent = username.charAt(0).toUpperCase();
-                }
+                // Sabit kullanıcı adı kullanılıyor
+                loginScreen.style.display = 'none';
+                appContainer.style.display = 'flex';
+                
+                // Kullanıcı adı görüntüleme
+                currentUsername.textContent = fixedUsername;
+                memberCurrentUser .textContent = fixedUsername;
+                currentUser Avatar.textContent = fixedUsername.charAt(0).toUpperCase();
             });
             
             // Get Current Timestamp
@@ -911,4 +946,51 @@
                 
                 const channelNameInput = document.getElementById('channel-name');
                 const channelTopicInput = document.getElementById('channel-topic');
-                const passwor
+                const passwordInput = document.getElementById('channel-password');
+                
+                const channelName = channelNameInput.value.trim();
+                const channelTopic = channelTopicInput.value.trim();
+                const isPrivate = channelPrivate.checked;
+                const password = isPrivate ? passwordInput.value.trim() : null;
+
+                // Kanal oluşturma işlemi burada yapılacak
+                alert(`Kanal oluşturuldu: ${channelName} - ${channelTopic} ${isPrivate ? '(Özel)' : ''}`);
+                
+                // Kanalı listeye ekleme (örnek)
+                const newChannelItem = document.createElement('div');
+                newChannelItem.className = 'channel-item';
+                newChannelItem.dataset.channel = channelName;
+                newChannelItem.innerHTML = `<span class="channel-icon">#</span><span class="channel-name">${channelName}</span>`;
+                document.querySelector('.channel-list').appendChild(newChannelItem);
+                
+                createChannelModal.style.display = 'none';
+                channelNameInput.value = '';
+                channelTopicInput.value = '';
+                passwordInput.value = '';
+                channelPrivate.checked = false;
+                passwordFields.style.display = 'none';
+            });
+
+            // Admin Paneli Açma
+            const adminPanelBtn = document.getElementById('admin-panel-btn'); // Admin paneli açma butonu
+            adminPanelBtn.addEventListener('click', function() {
+                adminPanelModal.style.display = 'flex';
+            });
+
+            // Admin panelini kapat
+            cancelAdminPanel.addEventListener('click', function() {
+                adminPanelModal.style.display = 'none';
+            });
+
+            // Kanal silme işlemi
+            adminPanelForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const channelToDelete = document.getElementById('channel-to-delete').value;
+                // Kanal silme işlemi burada yapılacak
+                alert(`${channelToDelete} kanalı silindi!`);
+                adminPanelModal.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
