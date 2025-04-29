@@ -47,7 +47,7 @@
   <h2>Kullanıcı Adı Gir</h2>
   <input type="text" id="username" placeholder="Kullanıcı adı" />
   <br>
-  <button id="loginButton">Giriş</button>
+  <button onclick="login()">Giriş</button>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -55,6 +55,7 @@
     import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
     import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
+    // Firebase Konfigürasyonu
     const firebaseConfig = {
       apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
       authDomain: "okul-sohbet-794d0.firebaseapp.com",
@@ -62,48 +63,29 @@
       projectId: "okul-sohbet-794d0",
       storageBucket: "okul-sohbet-794d0.firebasestorage.app",
       messagingSenderId: "849190115812",
-      appId: "1:849190115812:web:70e78485af056296720ff1"
+      appId: "1:849190115812:web:70e78485af056296720ff1",
+      measurementId: "G-SLWK3XCYMH"
     };
 
-    // Firebase'i başlat
+    // Firebase'i Başlat
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
+    const auth = getAuth(app);
 
-    // Kullanıcı doğrulaması
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Giriş yapmış kullanıcı
-        localStorage.setItem("username", user.displayName || "Anonim");
-        window.location.href = "odalar.html"; // Kullanıcı odalar sayfasına yönlendirilir
-      }
-    });
-
-    // Giriş yapma işlemi
-    document.getElementById("loginButton").addEventListener("click", function() {
+    // Giriş Fonksiyonu
+    function login() {
       const username = document.getElementById("username").value;
       if (!username) {
         alert("Lütfen kullanıcı adı girin.");
         return;
       }
 
-      // Kullanıcı adıyla giriş yapmadan önce anonim giriş yapılır
-      signInAnonymously(auth)
-        .then(() => {
-          // Giriş başarılı
-          const user = auth.currentUser;
-          user.updateProfile({
-            displayName: username
-          }).then(() => {
-            // Kullanıcı adı kaydedildikten sonra odalar sayfasına yönlendirilir
-            localStorage.setItem("username", username);
-            window.location.href = "odalar.html";
-          });
-        })
-        .catch((error) => {
-          alert("Giriş sırasında bir hata oluştu: " + error.message);
-        });
-    });
+      // Kullanıcı Adını LocalStorage'a Kaydet
+      localStorage.setItem("username", username);
+
+      // Odanın ID'sini ve kullanıcı adıyla giriş işlemi
+      window.location.href = "odalar.html";
+    }
   </script>
 </body>
 </html>
