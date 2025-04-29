@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Odalar</title>
+  <meta charset="UTF-8">
+  <title>Odalara Katıl</title>
   <style>
     body {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: #fff;
+      color: white;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 50px;
+      padding: 50px;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
+      font-size: 16px;
     }
 
     button {
-      padding: 12px 30px;
       background-color: #00b894;
       border: none;
-      border-radius: 8px;
       color: white;
-      font-size: 16px;
       cursor: pointer;
-      transition: 0.3s ease;
+      transition: 0.3s;
     }
 
     button:hover {
@@ -29,29 +33,84 @@
   </style>
 </head>
 <body>
-  <h2>Odalar</h2>
-  <button onclick="createRoom()">Oda Oluştur</button>
+  <h2>Odalara Katıl</h2>
+  <input type="text" id="roomName" placeholder="Oda Adı" />
+  <input type="password" id="roomPassword" placeholder="Oda Şifresi" />
+  <button id="createRoomBtn">Oda Oluştur</button>
+  <button id="joinRoomBtn">Odaya Katıl</button>
 
   <script type="module">
-    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
-    import { db } from './app.js';
+    import { getDatabase, ref, set, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxGSxaTj0J3lhnyQrwC9hDGs7-tKq600c",
+      authDomain: "okul-sohbet-794d0.firebaseapp.com",
+      databaseURL: "https://okul-sohbet-794d0-default-rtdb.firebaseio.com",
+      projectId: "okul-sohbet-794d0",
+      storageBucket: "okul-sohbet-794d0.appspot.com",
+      messagingSenderId: "849190115812",
+      appId: "1:849190115812:web:70e78485af056296720ff1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const username = localStorage.getItem("username");
+    if (!username) {
+      alert("Lütfen giriş yapın.");
+      window.location.href = "index.html";
+    }
+
+    // Oda oluşturma fonksiyonu
     function createRoom() {
-      const roomName = prompt("Oda adını girin:");
-      if (!roomName) return;
+      const roomName = document.getElementById("roomName").value.trim();
+      const roomPassword = document.getElementById("roomPassword").value.trim();
+      
+      if (!roomName) {
+        alert("Lütfen oda adı girin.");
+        return;
+      }
 
-      const roomPassword = prompt("Oda şifresi (isteğe bağlı):");
+      // Odayı veritabanına kaydet
       const roomRef = ref(db, 'rooms/' + roomName);
       set(roomRef, {
-        name: roomName,
-        password: roomPassword
+        password: roomPassword,
+        creator: username,
+        createdAt: Date.now()
       }).then(() => {
-        alert("Oda oluşturuldu!");
-        window.location.href = "sohbet.html?room=" + roomName + "&password=" + roomPassword;
-      }).catch((error) => {
-        console.error("Oda oluşturulurken hata oluştu:", error);
+        alert("Oda başarıyla oluşturuldu!");
+        window.location.href = `sohbet.html?room=${roomName}&password=${roomPassword}`;
+      }).catch(error => {
+        alert("Oda oluşturulurken hata oluştu: " + error.message);
       });
     }
+
+    // Odaya katılma fonksiyonu
+    function joinRoom() {
+      const roomName = document.getElementById("roomName").value.trim();
+      const roomPassword = document.getElementById("roomPassword").value.trim();
+
+      if (!roomName || !roomPassword) {
+        alert("Lütfen oda adı ve şifreyi girin.");
+        return;
+      }
+
+      const roomRef = ref(db, 'rooms/' + roomName);
+      get(roomRef).then(snapshot => {
+        const room = snapshot.val();
+        if (room && room.password === roomPassword) {
+          window.location.href = `sohbet.html?room=${roomName}&password=${roomPassword}`;
+        } else {
+          alert("Yanlış oda adı veya şifre.");
+        }
+      }).catch(error => {
+        alert("Odaya katılırken hata oluştu: " + error.message);
+      });
+    }
+
+    document.getElementById("createRoomBtn").onclick = createRoom;
+    document.getElementById("joinRoomBtn").onclick = joinRoom;
   </script>
 </body>
 </html>
