@@ -30,6 +30,10 @@
     button:hover {
       background-color: #019875;
     }
+
+    .room-list {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -39,8 +43,10 @@
   <button id="createRoomBtn">Oda Oluştur</button>
   <button id="joinRoomBtn">Odaya Katıl</button>
 
+  <div id="roomList" class="room-list"></div> <!-- Oda listesi buraya eklenecek -->
+
   <script type="module">
-    import { getDatabase, ref, set, push } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+    import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
 
     const firebaseConfig = {
@@ -109,8 +115,38 @@
       });
     }
 
+    // Oda listesine odaları ekle
+    function loadRooms() {
+      const roomsRef = ref(db, 'rooms/');
+      get(roomsRef).then(snapshot => {
+        const rooms = snapshot.val();
+        const roomListDiv = document.getElementById("roomList");
+
+        if (rooms) {
+          for (const roomName in rooms) {
+            const room = rooms[roomName];
+            const roomElement = document.createElement("div");
+            roomElement.innerHTML = `
+              <div>
+                <p>Oda Adı: ${roomName}</p>
+                <button onclick="joinRoom('${roomName}', '${room.password}')">Odaya Katıl</button>
+              </div>
+            `;
+            roomListDiv.appendChild(roomElement);
+          }
+        } else {
+          roomListDiv.innerHTML = "<p>Henüz oluşturulmuş oda yok.</p>";
+        }
+      }).catch(error => {
+        alert("Oda listesi yüklenirken hata oluştu: " + error.message);
+      });
+    }
+
     document.getElementById("createRoomBtn").onclick = createRoom;
     document.getElementById("joinRoomBtn").onclick = joinRoom;
+
+    // Sayfa yüklendiğinde odaları yükle
+    window.onload = loadRooms;
   </script>
 </body>
 </html>
