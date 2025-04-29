@@ -9,15 +9,13 @@
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 100px;
+      margin-top: 50px;
     }
-
     h2 {
       font-size: 28px;
       margin-bottom: 30px;
     }
-
-    input[type="text"] {
+    input[type="text"], input[type="password"] {
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
@@ -26,7 +24,6 @@
       outline: none;
       margin-bottom: 20px;
     }
-
     button {
       padding: 12px 30px;
       background-color: #00b894;
@@ -37,33 +34,27 @@
       cursor: pointer;
       transition: 0.3s ease;
     }
-
     button:hover {
       background-color: #019875;
     }
   </style>
 </head>
 <body>
-  <h2>Kullanıcı Adı Girin</h2>
-  <input type="text" id="username" placeholder="Kullanıcı adı" />
-  <br>
+  <h2>Giriş Yap</h2>
+  <input type="text" id="username" placeholder="Kullanıcı Adı" />
   <button onclick="login()">Giriş Yap</button>
 
-  <script>
-    // Kullanıcı adı ile giriş işlemi
-    function login() {
-      const username = document.getElementById("username").value;
+  <script type="module">
+    import { db } from './app.js';
 
+    function login() {
+      const username = document.getElementById('username').value.trim();
       if (!username) {
-        alert("Lütfen kullanıcı adı girin.");
+        alert('Kullanıcı adı boş olamaz!');
         return;
       }
-
-      // Kullanıcı adını localStorage'a kaydediyoruz
-      localStorage.setItem("username", username);
-
-      // Kullanıcıyı odalar sayfasına yönlendiriyoruz
-      window.location.href = "odalar.html";
+      localStorage.setItem('username', username);
+      window.location.href = 'odalar.html';
     }
   </script>
 </body>
