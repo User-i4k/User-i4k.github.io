@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Chat + Game Hub</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Realtime Chat + Game Hub</h1>
+    </div>
+    <div class="container">
+        <div class="room-list">
+            <h2>Oda Listesi</h2>
+            <ul id="chatRooms">
+                <li><button class="room-button" data-room="Genel">Genel Sohbet</button></li>
+                <li><button class="room-button" data-room="Oyun Sohbeti">Oyun Sohbeti</button></li>
+            </ul>
+        </div>
+        <div class="chat-area" id="chatArea">
+            <h2>Mesajlar</h2>
+            <div id="messages"></div>
+            <input type="text" id="messageInput" placeholder="Mesajınızı yazın...">
+            <button id="sendMessage">Gönder</button>
+        </div>
+        <button id="logoutButton">Çıkış Yap</button>
+    </div>
+    <script src="firebase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
