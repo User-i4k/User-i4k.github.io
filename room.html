@@ -21,7 +21,7 @@
   </footer>
 
   <script type="module">
-    import { db, ref, push, onValue, set } from "./firebase.js";
+    import { db, ref, push, set, onValue, remove } from "./firebase.js";
 
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
@@ -31,29 +31,44 @@
 
     document.getElementById("roomName").innerText = room;
 
-    const chatRef = ref(db, `rooms/${type}/${room}/messages`);
-    const userRef = ref(db, `rooms/${type}/${room}/users/${username}`);
+    const roomPath = `rooms/${type}/${room}`;
+    const chatRef = ref(db, `${roomPath}/messages`);
+    const userRef = ref(db, `${roomPath}/users/${username}`);
+
+    // Kullanıcı giriş yaptığında odaya ekle
     set(userRef, true);
 
-    onValue(chatRef, snap => {
-      const chatBox = document.getElementById("chatBox");
-      chatBox.innerHTML = "";
-      snap.forEach(msg => {
-        const data = msg.val();
-        const div = document.createElement("div");
-        div.className = "msg";
-        div.innerHTML = `<strong>${data.user}</strong>: ${data.text}`;
-        chatBox.appendChild(div);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
+    // Kullanıcı sayısını takip et
+    onValue(ref(db, `${roomPath}/users`), snap => {
+      const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+      document.title = `${room} (${count} kişi)`;
     });
 
-    document.getElementById("sendBtn").addEventListener("click", () => {
-      const text = document.getElementById("msgInput").value.trim();
-      if(text === "") return;
-      push(chatRef, { user: username, text });
-      document.getElementById("msgInput").value = "";
+    // Mesajları göster
+    onValue(chatRef, snap => {
+      const box = document.getElementById("chatBox");
+      box.innerHTML = "";
+      snap.forEach(msg => {
+        const m = msg.val();
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerHTML = `<strong>${m.user}</strong>: ${m.text}`;
+        box.appendChild(div);
+      });
+      box.scrollTop = box.scrollHeight;
     });
+
+    // Mesaj gönder
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const input = document.getElementById("msgInput");
+      const text = input.value.trim();
+      if(!text) return;
+      push(chatRef, { user: username, text });
+      input.value = "";
+    });
+
+    // Çıkışta kullanıcıyı odadan sil
+    window.addEventListener("beforeunload", () => remove(userRef));
   </script>
 </body>
 </html>
