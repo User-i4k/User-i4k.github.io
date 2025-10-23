@@ -10,31 +10,88 @@
 <body>
   <header>
     <h1>xQuera Chat</h1>
-    <span id="usernameDisplay"></span>
+    <div>
+      <span id="usernameDisplay"></span>
+      <button onclick="logout()">Çıkış</button>
+    </div>
   </header>
 
   <main>
-    <section class="room-list" id="roomList">
+    <section class="room-list">
       <h2>🕹️ Oyun Odaları</h2>
       <div id="gameRooms"></div>
 
       <h2>💬 Sohbet Odaları</h2>
       <div id="chatRooms"></div>
     </section>
+
+    <section class="create-room">
+      <h3>Yeni oda oluştur</h3>
+      <input id="roomNameInput" placeholder="Oda adı...">
+      <select id="roomType">
+        <option value="chat">Sohbet</option>
+        <option value="game">Oyun</option>
+      </select>
+      <button id="createRoomBtn">Oluştur</button>
+    </section>
   </main>
 
   <footer>
-    <button onclick="logout()">Çıkış</button>
+    <p class="devtag">Developed by <span>xQuera</span></p>
   </footer>
 
   <script type="module">
-    import { db, ref, onValue } from "./firebase.js";
+    import { db, ref, set, onValue, push } from "./firebase.js";
+
     const username = localStorage.getItem("username");
     if(!username) window.location.href = "index.html";
 
     document.getElementById("usernameDisplay").innerText = "👤 " + username;
 
     const gameRef = ref(db, "rooms/game/");
+    const chatRef = ref(db, "rooms/chat/");
+
+    const renderRooms = (snapshot, containerId, type) => {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      snapshot.forEach(room => {
+        const name = room.key;
+        const users = room.val().users ? Object.keys(room.val().users).length : 0;
+        const div = document.createElement("div");
+        div.className = "room-card";
+        div.innerHTML = `<strong>${name}</strong><br><span>${users} kişi</span>`;
+        div.onclick = () => {
+          localStorage.setItem("room", name);
+          window.location.href = "room.html?type=" + type;
+        };
+        container.appendChild(div);
+      });
+    };
+
+    onValue(gameRef, snap => renderRooms(snap, "gameRooms", "game"));
+    onValue(chatRef, snap => renderRooms(snap, "chatRooms", "chat"));
+
+    // Yeni oda oluştur
+    document.getElementById("createRoomBtn").addEventListener("click", async () => {
+      const name = document.getElementById("roomNameInput").value.trim();
+      const type = document.getElementById("roomType").value;
+      if(name.length < 2) return alert("Oda adı çok kısa!");
+
+      await set(ref(db, `rooms/${type}/${name}`), {
+        createdBy: username,
+        users: {},
+        messages: {}
+      });
+      alert("Oda oluşturuldu!");
+    });
+
+    window.logout = () => {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    };
+  </script>
+</body>
+</html>    const gameRef = ref(db, "rooms/game/");
     const chatRef = ref(db, "rooms/chat/");
 
     const renderRooms = (snapshot, containerId, type) => {
