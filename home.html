@@ -1,55 +1,150 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>xQuera - Ana Sayfa</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="firebase.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ana Sayfa | xQuera</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f0f10, #1b1f25);
+      color: #fff;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background-color: rgba(255,255,255,0.05);
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0;
+    }
+
+    #playerName {
+      color: #4fc3f7;
+    }
+
+    .room-section {
+      margin: 40px auto;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .room-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #90caf9;
+    }
+
+    .room-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .room-card {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      width: 200px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .room-card:hover {
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.05);
+    }
+
+    .room-card h3 {
+      margin: 0 0 10px;
+      color: #fff;
+    }
+
+    .room-card p {
+      margin: 0;
+      color: #ccc;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .logout-btn {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      background-color: #e74c3c;
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
 </head>
 <body>
-  
+  <!-- Guard sistemi -->
   <script src="guard.js"></script>
-  
+
   <header>
-    <h1>xQuera Chat</h1>
-    <div>
-      <span id="usernameDisplay"></span>
-      <button onclick="logout()">Çıkış</button>
-    </div>
+    <h1>🏠 Ana Sayfa</h1>
+    <p>Hoş geldin, <span id="playerName"></span>!</p>
+    <button class="logout-btn" onclick="logout()">Çıkış</button>
   </header>
 
-  <main>
-    <section class="room-list">
-      <h2>🕹️ Oyun Odaları</h2>
-      <div id="gameRooms"></div>
+  <div class="room-section">
+    <h2 class="room-title">💬 Sohbet Odaları</h2>
+    <div class="room-list" id="chatRooms"></div>
+  </div>
 
-      <h2>💬 Sohbet Odaları</h2>
-      <div id="chatRooms"></div>
-    </section>
+  <div class="room-section">
+    <h2 class="room-title">🎮 Oyun Odaları</h2>
+    <div class="room-list" id="gameRooms"></div>
+  </div>
 
-    <section class="create-room">
-      <h3>Yeni oda oluştur</h3>
-      <input id="roomNameInput" placeholder="Oda adı...">
-      <select id="roomType">
-        <option value="chat">Sohbet</option>
-        <option value="game">Oyun</option>
-      </select>
-      <button id="createRoomBtn">Oluştur</button>
-    </section>
-  </main>
-
-  <footer>
-    <p class="devtag">Developed by <span>xQuera</span></p>
-  </footer>
+  <div class="footer">
+    Developed by <strong>xQuera</strong> | Firebase Realtime System 🔥
+  </div>
 
   <script type="module">
-    import { db, ref, set, onValue, push } from "./firebase.js";
+    // Firebase importları
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6UDwZBwRJxPJjVo5NkoXUitBZ93jaqMc",
+      authDomain: "kayraokulu.firebaseapp.com",
+      databaseURL: "https://kayraokulu-default-rtdb.firebaseio.com",
+      projectId: "kayraokulu",
+      storageBucket: "kayraokulu.firebasestorage.app",
+      messagingSenderId: "1057965536521",
+      appId: "1:1057965536521:web:67d1bd5c0b0a76950a0fd8",
+      measurementId: "G-2TKESSQH6K"
+    };
+
+    // Firebase başlat
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
     const username = localStorage.getItem("username");
-    if(!username) window.location.href = "index.html";
-
-    document.getElementById("usernameDisplay").innerText = "👤 " + username;
+    document.getElementById("playerName").textContent = username;
 
     const gameRef = ref(db, "rooms/game/");
     const chatRef = ref(db, "rooms/chat/");
@@ -57,55 +152,16 @@
     const renderRooms = (snapshot, containerId, type) => {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
-      snapshot.forEach(room => {
-        const name = room.key;
-        const users = room.val().users ? Object.keys(room.val().users).length : 0;
-        const div = document.createElement("div");
-        div.className = "room-card";
-        div.innerHTML = `<strong>${name}</strong><br><span>${users} kişi</span>`;
-        div.onclick = () => {
-          localStorage.setItem("room", name);
-          window.location.href = "room.html?type=" + type;
-        };
-        container.appendChild(div);
-      });
-    };
 
-    onValue(gameRef, snap => renderRooms(snap, "gameRooms", "game"));
-    onValue(chatRef, snap => renderRooms(snap, "chatRooms", "chat"));
-
-    // Yeni oda oluştur
-    document.getElementById("createRoomBtn").addEventListener("click", async () => {
-      const name = document.getElementById("roomNameInput").value.trim();
-      const type = document.getElementById("roomType").value;
-      if(name.length < 2) return alert("Oda adı çok kısa!");
-
-      await set(ref(db, `rooms/${type}/${name}`), {
-        createdBy: username,
-        users: {},
-        messages: {}
-      });
-      alert("Oda oluşturuldu!");
-    });
-
-    window.logout = () => {
-      localStorage.removeItem("username");
-      window.location.href = "index.html";
-    };
-  </script>
-</body>
-</html>    const gameRef = ref(db, "rooms/game/");
-    const chatRef = ref(db, "rooms/chat/");
-
-    const renderRooms = (snapshot, containerId, type) => {
-      const container = document.getElementById(containerId);
-      container.innerHTML = "";
       snapshot.forEach(room => {
         const roomName = room.key;
         const users = room.val()?.users ? Object.keys(room.val().users).length : 0;
         const div = document.createElement("div");
         div.className = "room-card";
-        div.innerHTML = `<strong>${roomName}</strong><br><span>${users} kişi</span>`;
+        div.innerHTML = `
+          <h3>${roomName}</h3>
+          <p>${users} kişi</p>
+        `;
         div.onclick = () => {
           localStorage.setItem("room", roomName);
           window.location.href = "room.html?type=" + type;
@@ -114,9 +170,10 @@
       });
     };
 
-    onValue(gameRef, snap => renderRooms(snap, "gameRooms", "game"));
     onValue(chatRef, snap => renderRooms(snap, "chatRooms", "chat"));
+    onValue(gameRef, snap => renderRooms(snap, "gameRooms", "game"));
 
+    // Çıkış fonksiyonu
     window.logout = () => {
       localStorage.removeItem("username");
       window.location.href = "index.html";
