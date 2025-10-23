@@ -16,6 +16,17 @@
   </header>
 
   <main class="container">
+    <section class="grid two" id="gameTypeGrid" style="margin-bottom:16px;">
+      <div class="cta-card selector-card" data-type="xox">
+        <h2>❌⭘ XOX</h2>
+        <p>Klasik 3x3 XOX oyunu.</p>
+      </div>
+      <div class="cta-card selector-card" data-type="dice">
+        <h2>🎲 Zar Atma</h2>
+        <p>En yüksek zar kazansın!</p>
+      </div>
+    </section>
+
     <section class="toolbar">
       <input id="createInput" type="text" placeholder="Yeni oyun odası adı... (3-20, harf/rakam/_-)" maxlength="20" autocomplete="off">
       <button id="createBtn">Oluştur</button>
@@ -26,10 +37,10 @@
     <p class="devtag">Developed by <span>xQuera</span></p>
   </main>
 
-  <script type="module">
+    <script type="module">
     import { db, ref, set, onValue } from './firebase.js';
 
-    const type = 'game';
+      let selectedGame = localStorage.getItem('selectedGame') || 'dice';
     const username = localStorage.getItem('username');
     document.getElementById('playerName').textContent = `👤 ${username || ''}`;
 
@@ -39,7 +50,7 @@
 
     function join(roomName) {
       localStorage.setItem('room', roomName);
-      window.location.href = `room.html?type=${type}`;
+      window.location.href = `room.html?type=${selectedGame}`;
     }
 
     btnEl.addEventListener('click', async () => {
@@ -49,7 +60,7 @@
         return;
       }
       try {
-        await set(ref(db, `rooms/${type}/${name}/meta/createdAt`), Date.now());
+        await set(ref(db, `rooms/${selectedGame}/${name}/meta/createdAt`), Date.now());
         join(name);
       } catch (e) {
         console.error(e);
@@ -61,7 +72,28 @@
       if (e.key === 'Enter') btnEl.click();
     });
 
-    onValue(ref(db, `rooms/${type}`), (snap) => {
+    // Game type selector UI
+    const grid = document.getElementById('gameTypeGrid');
+    const cards = Array.from(grid.querySelectorAll('.selector-card'));
+    const markSelection = () => {
+      cards.forEach(c => c.classList.toggle('selected', c.dataset.type === selectedGame));
+    };
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        selectedGame = card.dataset.type;
+        localStorage.setItem('selectedGame', selectedGame);
+        markSelection();
+        // Refresh list for new type
+        subscribeRooms();
+      });
+    });
+    markSelection();
+
+    let unsubscribe = null;
+    const subscribeRooms = () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+      const r = ref(db, `rooms/${selectedGame}`);
+      const handler = (snap) => {
       const data = snap.exists() ? snap.val() : {};
       const rooms = Object.keys(data);
 
@@ -71,30 +103,33 @@
         return ub - ua;
       });
 
-      listEl.innerHTML = '';
-      rooms.forEach((room) => {
-        const users = data[room]?.users || {};
-        const count = Object.keys(users).length;
-        const div = document.createElement('div');
-        div.className = 'room-card';
-        div.innerHTML = `
-          <div class="row">
-            <h3>${room}</h3>
-            <span class="badge">${count} kişi</span>
-          </div>
-          <p>${count > 0 ? 'Aktif oda' : 'Yeni oda'}</p>
-        `;
-        div.addEventListener('click', () => join(room));
-        listEl.appendChild(div);
-      });
+        listEl.innerHTML = '';
+        rooms.forEach((room) => {
+          const users = data[room]?.users || {};
+          const count = Object.keys(users).length;
+          const div = document.createElement('div');
+          div.className = 'room-card';
+          div.innerHTML = `
+            <div class="row">
+              <h3>${room}</h3>
+              <span class="badge">${count} kişi</span>
+            </div>
+            <p>${count > 0 ? 'Aktif oda' : 'Yeni oda'}</p>
+          `;
+          div.addEventListener('click', () => join(room));
+          listEl.appendChild(div);
+        });
 
-      if (rooms.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'room-card';
-        empty.textContent = 'Henüz oda yok. İlk odayı sen oluştur!';
-        listEl.appendChild(empty);
-      }
-    });
+        if (rooms.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'room-card';
+          empty.textContent = 'Henüz oda yok. İlk odayı sen oluştur!';
+          listEl.appendChild(empty);
+        }
+      };
+      unsubscribe = onValue(r, handler);
+    };
+    subscribeRooms();
   </script>
 </body>
 </html>

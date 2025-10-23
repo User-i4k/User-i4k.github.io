@@ -124,11 +124,16 @@ header, footer {
   display: flex;
   padding: 10px;
   background: #111;
+  gap: 10px;
 }
 
 .chat-input input {
   flex: 1;
-  margin-right: 10px;
+  width: auto;
+  margin-right: 0;
+  font-size: 16px;
+  padding: 12px 14px;
+  height: 44px;
 }
 
 .devtag {
@@ -162,6 +167,17 @@ header, footer {
   margin: 10px 20px 0 20px;
 }
 
+.toolbar input {
+  flex: 1;
+  width: auto;
+}
+
+.toolbar button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 10px 16px;
+}
+
 .row {
   display: flex;
   justify-content: space-between;
@@ -176,6 +192,25 @@ header, footer {
   color: #000;
   font-weight: 700;
   box-shadow: 0 0 8px #0ff;
+}
+
+/* Chat action button sizing */
+.chat-input button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 16px;
+  height: 44px;
+  font-size: 14px;
+}
+
+/* Game type selector */
+.selector-card {
+  cursor: pointer;
+}
+
+.selector-card.selected {
+  border: 2px solid #0ff;
+  box-shadow: 0 0 16px rgba(0,255,255,0.35);
 }
 
 /* Chat bubbles */
