@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>xQuera - Ana Sayfa</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="firebase.js"></script>
+</head>
+<body>
+  <header>
+    <h1>xQuera Chat</h1>
+    <span id="usernameDisplay"></span>
+  </header>
+
+  <main>
+    <section class="room-list" id="roomList">
+      <h2>🕹️ Oyun Odaları</h2>
+      <div id="gameRooms"></div>
+
+      <h2>💬 Sohbet Odaları</h2>
+      <div id="chatRooms"></div>
+    </section>
+  </main>
+
+  <footer>
+    <button onclick="logout()">Çıkış</button>
+  </footer>
+
+  <script type="module">
+    import { db, ref, onValue } from "./firebase.js";
+    const username = localStorage.getItem("username");
+    if(!username) window.location.href = "index.html";
+
+    document.getElementById("usernameDisplay").innerText = "👤 " + username;
+
+    const gameRef = ref(db, "rooms/game/");
+    const chatRef = ref(db, "rooms/chat/");
+
+    const renderRooms = (snapshot, containerId, type) => {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      snapshot.forEach(room => {
+        const roomName = room.key;
+        const users = room.val()?.users ? Object.keys(room.val().users).length : 0;
+        const div = document.createElement("div");
+        div.className = "room-card";
+        div.innerHTML = `<strong>${roomName}</strong><br><span>${users} kişi</span>`;
+        div.onclick = () => {
+          localStorage.setItem("room", roomName);
+          window.location.href = "room.html?type=" + type;
+        };
+        container.appendChild(div);
+      });
+    };
+
+    onValue(gameRef, snap => renderRooms(snap, "gameRooms", "game"));
+    onValue(chatRef, snap => renderRooms(snap, "chatRooms", "chat"));
+
+    window.logout = () => {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    };
+  </script>
+</body>
+</html>
