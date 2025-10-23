@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>xQuera Chat - Giriş</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="center">
+
+  <!-- Kullanıcı kontrol scripti -->
+  <script src="guard.js"></script>
+
+  <div class="login-card">
+    <h1>🔥 xQuera Chat</h1>
+    <p>Kullanıcı adını gir:</p>
+    <input id="usernameInput" type="text" placeholder="Kullanıcı adı..." maxlength="15" autocomplete="off">
+    <button id="loginBtn">Giriş</button>
+    <p class="devtag">Developed by <span>xQuera</span></p>
+  </div>
+
+  <script type="module">
+    import { db, ref, set } from "./firebase.js";
+
+    const input = document.getElementById("usernameInput");
+    const btn = document.getElementById("loginBtn");
+
+    // Eğer kullanıcı zaten giriş yaptıysa direkt yönlendir
+    const existingUser = localStorage.getItem("username");
+    if (existingUser && existingUser.trim() !== "") {
+      window.location.href = "home.html";
+    }
+
+    btn.addEventListener("click", async () => {
+      const username = input.value.trim();
+
+      // Boş veya kısa ad engeli
+      if (!username) return alert("Lütfen bir kullanıcı adı girin!");
+      if (username.length < 3) return alert("Kullanıcı adı en az 3 karakter olmalı!");
+      if (username.includes(" ")) return alert("Kullanıcı adında boşluk olamaz!");
+
+      // Kullanıcı adını kaydet
+      localStorage.setItem("username", username);
+
+      try {
+        // Firebase'e kullanıcıyı kaydet
+        await set(ref(db, "users/" + username), {
+          name: username,
+          joinedAt: Date.now()
+        });
+
+        // Ana sayfaya yönlendir
+        window.location.href = "home.html";
+      } catch (err) {
+        console.error("Firebase hatası:", err);
+        alert("Bağlantı sırasında bir hata oluştu, lütfen tekrar deneyin.");
+      }
+    });
+  </script>
+</body>
+</html>
