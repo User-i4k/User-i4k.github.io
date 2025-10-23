@@ -22,12 +22,13 @@ body {
   text-align: center;
 }
 
-input, button {
+input, button, select {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
   border-radius: 8px;
   border: none;
+  font-family: inherit;
 }
 
 button {
@@ -43,7 +44,7 @@ button:hover {
 
 header, footer {
   background: #111;
-  padding: 10px;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -56,16 +57,18 @@ header, footer {
 
 .room-card {
   background: #1a1a1a;
-  padding: 10px;
+  padding: 15px;
   border-radius: 10px;
   margin: 10px 0;
   cursor: pointer;
   box-shadow: 0 0 5px #0ff;
+  transition: 0.2s;
 }
 
 .room-card:hover {
   background: #0ff;
   color: #000;
+  transform: scale(1.02);
 }
 
 .chat-box {
@@ -87,4 +90,10 @@ header, footer {
 .chat-input input {
   flex: 1;
   margin-right: 10px;
+}
+
+.devtag {
+  margin-top: 20px;
+  font-size: 0.9em;
+  color: #0ff;
 }
