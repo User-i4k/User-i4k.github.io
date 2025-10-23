@@ -17,6 +17,15 @@
     <div class="userbar"><span id="playerName"></span></div>
   </header>
 
+  <!-- Games panel (only visible in game rooms) -->
+  <section id="games" class="games hidden">
+    <div class="cards">
+      <div class="game-card" id="card-ttt">❌⭕ Tic-Tac-Toe</div>
+      <div class="game-card" id="card-dice">🎲 Zar Atma</div>
+    </div>
+    <div id="gameArea" class="game-area hidden"></div>
+  </section>
+
   <main class="chat-box" id="chatBox"></main>
 
   <footer class="chat-input">
@@ -25,7 +34,7 @@
   </footer>
 
   <script type="module">
-    import { db, ref, push, set, onValue, remove, onDisconnect } from "./firebase.js";
+    import { db, ref, push, set, onValue, remove, onDisconnect, get, child } from "./firebase.js";
 
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
@@ -39,6 +48,9 @@
     const roomPath = `rooms/${type}/${room}`;
     const chatRef = ref(db, `${roomPath}/messages`);
     const userRef = ref(db, `${roomPath}/users/${username}`);
+    const gameRootRef = ref(db, `${roomPath}/game`);
+    const tttRef = ref(db, `${roomPath}/game/ttt`);
+    const diceRef = ref(db, `${roomPath}/game/dice/last`);
 
     // Kullanıcı giriş yaptığında odaya ekle ve bağlantı kesildiğinde çıkar
     set(userRef, true);
@@ -77,6 +89,119 @@
 
     // Çıkışta kullanıcıyı odadan sil
     window.addEventListener("beforeunload", () => remove(userRef));
+
+    // Oyunlar: sadece type === 'game' ise göster
+    const gamesSection = document.getElementById('games');
+    const gameArea = document.getElementById('gameArea');
+    let tttSubscribed = false;
+    let diceSubscribed = false;
+
+    if (type === 'game') {
+      gamesSection.classList.remove('hidden');
+      document.getElementById('card-ttt').addEventListener('click', openTTT);
+      document.getElementById('card-dice').addEventListener('click', openDice);
+    }
+
+    function showGameArea() {
+      gameArea.classList.remove('hidden');
+      // Scroll chat below games into view
+      try { document.getElementById('chatBox').scrollTop = 0; } catch (_) {}
+    }
+
+    // Tic-Tac-Toe
+    async function ensureTTT() {
+      const snap = await get(tttRef);
+      if (!snap.exists()) {
+        await set(tttRef, { board: Array(9).fill(''), turn: 'X', winner: '' });
+      }
+    }
+
+    function renderTTT(state) {
+      const winnerText = state.winner ? (state.winner === 'draw' ? 'Berabere!' : `Kazanan: ${state.winner}`) : `Sıra: ${state.turn}`;
+      gameArea.innerHTML = `
+        <h3>❌⭕ Tic-Tac-Toe</h3>
+        <p id="tttStatus">${winnerText}</p>
+        <div class="ttt-grid">
+          ${state.board.map((v, i) => `<button class="ttt-cell" data-i="${i}" ${v || state.winner ? 'disabled' : ''}>${v || ''}</button>`).join('')}
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px;">
+          <button id="tttReset">Sıfırla</button>
+        </div>
+      `;
+      gameArea.querySelectorAll('.ttt-cell').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const i = Number(e.currentTarget.getAttribute('data-i'));
+          const latest = (await get(tttRef)).val();
+          if (!latest || latest.winner || latest.board[i]) return;
+          const nextBoard = latest.board.slice();
+          nextBoard[i] = latest.turn;
+          const nextWinner = checkWinner(nextBoard);
+          const nextTurn = nextWinner ? latest.turn : (latest.turn === 'X' ? 'O' : 'X');
+          await set(tttRef, { board: nextBoard, turn: nextTurn, winner: nextWinner || '' });
+        });
+      });
+      document.getElementById('tttReset').addEventListener('click', async () => {
+        await set(tttRef, { board: Array(9).fill(''), turn: 'X', winner: '' });
+      });
+      showGameArea();
+    }
+
+    function checkWinner(b) {
+      const lines = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (const [a,b1,c] of lines) {
+        if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
+      }
+      if (b.every(x => x)) return 'draw';
+      return '';
+    }
+
+    async function openTTT() {
+      await ensureTTT();
+      if (!tttSubscribed) {
+        onValue(tttRef, (snap) => {
+          const state = snap.exists() ? snap.val() : { board: Array(9).fill(''), turn: 'X', winner: '' };
+          renderTTT(state);
+        });
+        tttSubscribed = true;
+      } else {
+        const state = (await get(tttRef)).val() || { board: Array(9).fill(''), turn: 'X', winner: '' };
+        renderTTT(state);
+      }
+    }
+
+    // Dice
+    function renderDice(last) {
+      const lastText = last?.value ? `${last.value} ${last.by ? '(' + last.by + ')' : ''}` : '-';
+      gameArea.innerHTML = `
+        <h3>🎲 Zar Atma</h3>
+        <p>Son sonuç: <strong id="diceLast">${lastText}</strong></p>
+        <div style="margin-top:12px; display:flex; gap:10px;">
+          <button id="diceRoll">Zar At</button>
+        </div>
+      `;
+      document.getElementById('diceRoll').addEventListener('click', async () => {
+        const roll = Math.floor(Math.random() * 6) + 1;
+        await set(diceRef, { value: roll, by: username, at: Date.now() });
+        try { push(chatRef, { user: 'Sistem', text: `🎲 ${username} zar attı: ${roll}` }); } catch (_) {}
+      });
+      showGameArea();
+    }
+
+    async function openDice() {
+      if (!diceSubscribed) {
+        onValue(diceRef, (snap) => {
+          renderDice(snap.exists() ? snap.val() : null);
+        });
+        diceSubscribed = true;
+      } else {
+        const last = (await get(diceRef)).val();
+        renderDice(last);
+      }
+    }
   </script>
 </body>
 </html>
