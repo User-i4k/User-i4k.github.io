@@ -8,8 +8,7 @@
 </head>
 <body class="center">
 
-  <!-- Kullanıcı kontrol scripti -->
-  <script src="guard.js"></script>
+  <!-- Not: Guard bu sayfada yüklenmez; giriş sayfasıdır. -->
 
   <div class="login-card">
     <h1>🔥 xQuera Chat</h1>
@@ -31,7 +30,7 @@
       window.location.href = "home.html";
     }
 
-    btn.addEventListener("click", async () => {
+    const submit = async () => {
       const username = input.value.trim();
 
       // Boş veya kısa ad engeli
@@ -55,7 +54,10 @@
         console.error("Firebase hatası:", err);
         alert("Bağlantı sırasında bir hata oluştu, lütfen tekrar deneyin.");
       }
-    });
+    };
+
+    btn.addEventListener("click", submit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
   </script>
 </body>
 </html>

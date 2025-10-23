@@ -1,0 +1,45 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "rooms": {
+      "$type": {
+        ".read": "auth == null", // Allow listing rooms under each type on GitHub Pages
+        ".write": "auth == null",
+
+        "$room": {
+          ".read": "auth == null", // Public read for GitHub Pages; switch to auth != null in production
+          ".write": "auth == null", // Public write for GitHub Pages; restrict in prod
+
+          "messages": {
+            ".indexOn": ["createdAt"],
+            "$msgId": {
+              ".validate": "newData.hasChildren(['user','text']) && newData.child('user').isString() && newData.child('text').isString() && newData.child('text').val().length <= 500"
+            }
+          },
+
+          "users": {
+            "$username": {
+              ".validate": "newData.isBoolean()"
+            }
+          },
+
+          "meta": {
+            "createdAt": {
+              ".validate": "newData.isNumber()"
+            }
+          }
+        }
+      }
+    },
+
+    "users": {
+      "$username": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['name','joinedAt']) && newData.child('name').isString() && newData.child('joinedAt').isNumber()"
+      }
+    }
+  }
+}

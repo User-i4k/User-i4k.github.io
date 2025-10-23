@@ -12,8 +12,9 @@
   <script src="guard.js"></script>
   
   <header>
+    <button class="ghost" onclick="window.location.href='home.html'">🏠 Ana Sayfa</button>
     <h1 id="roomName">Oda</h1>
-    <button onclick="window.location.href='home.html'">🏠</button>
+    <div class="userbar"><span id="playerName"></span></div>
   </header>
 
   <main class="chat-box" id="chatBox"></main>
@@ -24,22 +25,24 @@
   </footer>
 
   <script type="module">
-    import { db, ref, push, set, onValue, remove } from "./firebase.js";
+    import { db, ref, push, set, onValue, remove, onDisconnect } from "./firebase.js";
 
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
     const username = localStorage.getItem("username");
     const room = localStorage.getItem("room");
-    if(!username || !room) window.location.href = "home.html";
+    if(!username || !room || !type) window.location.href = "home.html";
 
     document.getElementById("roomName").innerText = room;
+    document.getElementById("playerName").textContent = `👤 ${username}`;
 
     const roomPath = `rooms/${type}/${room}`;
     const chatRef = ref(db, `${roomPath}/messages`);
     const userRef = ref(db, `${roomPath}/users/${username}`);
 
-    // Kullanıcı giriş yaptığında odaya ekle
+    // Kullanıcı giriş yaptığında odaya ekle ve bağlantı kesildiğinde çıkar
     set(userRef, true);
+    try { onDisconnect(userRef).remove(); } catch (_) {}
 
     // Kullanıcı sayısını takip et
     onValue(ref(db, `${roomPath}/users`), snap => {
@@ -62,13 +65,15 @@
     });
 
     // Mesaj gönder
-    document.getElementById("sendBtn").addEventListener("click", () => {
-      const input = document.getElementById("msgInput");
-      const text = input.value.trim();
+    const inputEl = document.getElementById("msgInput");
+    const send = () => {
+      const text = inputEl.value.trim();
       if(!text) return;
       push(chatRef, { user: username, text });
-      input.value = "";
-    });
+      inputEl.value = "";
+    };
+    document.getElementById("sendBtn").addEventListener("click", send);
+    inputEl.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
 
     // Çıkışta kullanıcıyı odadan sil
     window.addEventListener("beforeunload", () => remove(userRef));

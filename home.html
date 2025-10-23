@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>xQuera - Ana Sayfa</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="guard.js"></script>
+
+  <header>
+    <div class="brand" onclick="window.location.href='home.html'">xQuera</div>
+    <div class="userbar">
+      <span>👤 <strong id="playerName"></strong></span>
+      <button id="logoutBtn" class="ghost">Çıkış</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="grid two">
+      <a class="cta-card" href="chat.html">
+        <h2>💬 Sohbet Odaları</h2>
+        <p>Özel ve genel gruplarda eş zamanlı sohbet et.</p>
+      </a>
+      <a class="cta-card" href="game.html">
+        <h2>🎮 Oyun Odaları</h2>
+        <p>Takımını topla, beraber oyun stratejisi kur.</p>
+      </a>
+    </section>
+
+    <p class="devtag">Developed by <span>xQuera</span></p>
+  </main>
+
+  <script>
+    const name = localStorage.getItem('username') || '';
+    document.getElementById('playerName').textContent = name;
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('username');
+      localStorage.removeItem('room');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
