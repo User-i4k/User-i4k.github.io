@@ -17,18 +17,28 @@
     <div class="userbar"><span id="playerName"></span></div>
   </header>
 
-  <main class="chat-box" id="chatBox"></main>
-
-  <footer class="chat-input">
-    <input id="msgInput" type="text" placeholder="Mesaj yaz...">
-    <button id="sendBtn">Gönder</button>
-  </footer>
+  <main class="container room-layout">
+    <section class="panel" id="gameArea">
+      <div class="game-header">
+        <h2 id="gameTitle">Oyun</h2>
+        <div class="small" id="gameMeta"></div>
+      </div>
+      <div id="gameContent" class="game-content"></div>
+    </section>
+    <section class="panel">
+      <div id="chatBox" class="chat-box"></div>
+      <div class="chat-input">
+        <input id="msgInput" type="text" placeholder="Mesaj yaz...">
+        <button id="sendBtn">Gönder</button>
+      </div>
+    </section>
+  </main>
 
   <script type="module">
-    import { db, ref, push, set, onValue, remove, onDisconnect } from "./firebase.js";
+    import { db, ref, push, set, onValue, remove, onDisconnect, get } from "./firebase.js";
 
     const params = new URLSearchParams(window.location.search);
-    const type = params.get("type");
+    const type = params.get("type"); // xox | dice | rps | click
     const username = localStorage.getItem("username");
     const room = localStorage.getItem("room");
     if(!username || !room || !type) window.location.href = "home.html";
@@ -39,18 +49,20 @@
     const roomPath = `rooms/${type}/${room}`;
     const chatRef = ref(db, `${roomPath}/messages`);
     const userRef = ref(db, `${roomPath}/users/${username}`);
+    const usersRef = ref(db, `${roomPath}/users`);
+    const gameRef = ref(db, `${roomPath}/game`);
 
-    // Kullanıcı giriş yaptığında odaya ekle ve bağlantı kesildiğinde çıkar
+    // Kullanıcıyı odaya ekle ve bağlantı kesilince çıkar
     set(userRef, true);
     try { onDisconnect(userRef).remove(); } catch (_) {}
 
-    // Kullanıcı sayısını takip et
-    onValue(ref(db, `${roomPath}/users`), snap => {
+    // Başlıkta kullanıcı sayısı
+    onValue(usersRef, snap => {
       const count = snap.exists() ? Object.keys(snap.val()).length : 0;
       document.title = `${room} (${count} kişi)`;
     });
 
-    // Mesajları göster
+    // Sohbeti göster
     onValue(chatRef, snap => {
       const box = document.getElementById("chatBox");
       box.innerHTML = "";
@@ -75,7 +87,249 @@
     document.getElementById("sendBtn").addEventListener("click", send);
     inputEl.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
 
-    // Çıkışta kullanıcıyı odadan sil
+    // Oyun alanı
+    const gameTitleEl = document.getElementById('gameTitle');
+    const gameMetaEl = document.getElementById('gameMeta');
+    const gameContentEl = document.getElementById('gameContent');
+
+    const TITLES = {
+      xox: '❌⭘ XOX',
+      dice: '🎲 Zar Atma',
+      rps: '✊✋✌️ Taş Kağıt Makas',
+      click: '⚡️ Tık Yarışı'
+    };
+    gameTitleEl.textContent = TITLES[type] || 'Oyun';
+
+    let gameState = null; // Son bilinen durum
+
+    const ensureInitialState = async () => {
+      const snap = await get(gameRef);
+      if (!snap.exists()) {
+        let initial;
+        if (type === 'xox') {
+          initial = { board: Array(9).fill(null), turn: 'X', winner: null, players: { X: null, O: null } };
+        } else if (type === 'dice') {
+          initial = { round: 1, rolls: {}, winner: null };
+        } else if (type === 'rps') {
+          initial = { round: 1, choices: {}, result: null };
+        } else if (type === 'click') {
+          initial = { goal: 50, scores: {}, finished: null };
+        } else {
+          initial = { };
+        }
+        await set(gameRef, initial);
+      }
+    };
+
+    if (type !== 'chat') {
+      ensureInitialState();
+    } else {
+      const gameArea = document.getElementById('gameArea');
+      if (gameArea) gameArea.style.display = 'none';
+      const layout = document.querySelector('.room-layout');
+      if (layout) layout.style.gridTemplateColumns = '1fr';
+    }
+
+    // Yardımcılar
+    const calcXoxWinner = (board) => {
+      const lines = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (const [a,b,c] of lines) {
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+      }
+      return board.every(Boolean) ? 'draw' : null;
+    };
+
+    const assignXoxPlayersIfNeeded = async (state, users) => {
+      if (state.players && state.players.X && state.players.O) return state;
+      const list = Object.keys(users || {}).sort();
+      const next = { ...state, players: { X: state.players?.X || list[0] || null, O: state.players?.O || list[1] || null } };
+      await set(gameRef, next);
+      return next;
+    };
+
+    const render = (state, users) => {
+      gameMetaEl.textContent = `${Object.keys(users || {}).length} kişi odada`;
+
+      if (type === 'xox') {
+        const me = username;
+        const mySymbol = state.players?.X === me ? 'X' : (state.players?.O === me ? 'O' : null);
+        const turnInfo = state.winner ? (state.winner === 'draw' ? 'Berabere' : `Kazanan: ${state.winner}`) : `Sıra: ${state.turn}`;
+        gameContentEl.innerHTML = `
+          <div class="xox-meta">${mySymbol ? `Sen: ${mySymbol}` : 'Seyirci' } · ${turnInfo}</div>
+          <div class="board" id="xoxBoard">
+            ${state.board.map((v, i) => `<button class="cell" data-idx="${i}">${v || ''}</button>`).join('')}
+          </div>
+          <div class="btn-row">
+            <button id="xoxReset" class="btn secondary">Sıfırla</button>
+          </div>
+        `;
+        const cells = Array.from(gameContentEl.querySelectorAll('.cell'));
+        cells.forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const idx = Number(btn.dataset.idx);
+            if (state.winner) return;
+            if (!mySymbol) return;
+            if (state.turn !== mySymbol) return;
+            if (state.board[idx]) return;
+            const nextBoard = state.board.slice();
+            nextBoard[idx] = mySymbol;
+            const w = calcXoxWinner(nextBoard);
+            const next = {
+              ...state,
+              board: nextBoard,
+              turn: w || mySymbol === 'X' ? 'O' : 'X',
+              winner: w && (w === 'draw' ? 'draw' : w)
+            };
+            // Turn hesaplamasını düzelt
+            next.turn = w ? state.turn : (mySymbol === 'X' ? 'O' : 'X');
+            await set(gameRef, next);
+          });
+        });
+        gameContentEl.querySelector('#xoxReset').addEventListener('click', async () => {
+          await set(gameRef, { board: Array(9).fill(null), turn: 'X', winner: null, players: state.players || { X: null, O: null } });
+        });
+        return;
+      }
+
+      if (type === 'dice') {
+        const rolled = state.rolls && state.rolls[username];
+        const players = Object.keys(state.rolls || {});
+        gameContentEl.innerHTML = `
+          <div class="dice-meta">${state.winner ? `Tur ${state.round} kazananı: ${state.winner}` : `Tur ${state.round}`}</div>
+          <div class="btn-row">
+            <button id="rollBtn" class="btn" ${rolled ? 'disabled' : ''}>Zar At</button>
+            <button id="newRoundBtn" class="btn secondary">Yeni Tur</button>
+          </div>
+          <div class="list" id="diceList">
+            ${players.length === 0 ? '<div class="muted">Henüz kimse atmadı.</div>' : players.map(p => `<div>${p}: <strong>${state.rolls[p]}</strong></div>`).join('')}
+          </div>
+        `;
+        gameContentEl.querySelector('#rollBtn').addEventListener('click', async () => {
+          if (state.rolls && state.rolls[username]) return;
+          const val = Math.floor(Math.random() * 6) + 1;
+          const rolls = { ...(state.rolls || {}), [username]: val };
+          // Kazananı hesapla
+          let winner = null;
+          const entries = Object.entries(rolls);
+          if (entries.length >= 2) {
+            const max = Math.max(...entries.map(([, v]) => v));
+            const top = entries.filter(([, v]) => v === max).map(([u]) => u);
+            winner = top.length === 1 ? top[0] : null;
+          }
+          await set(gameRef, { ...state, rolls, winner });
+        });
+        gameContentEl.querySelector('#newRoundBtn').addEventListener('click', async () => {
+          await set(gameRef, { round: (state.round || 1) + 1, rolls: {}, winner: null });
+        });
+        return;
+      }
+
+      if (type === 'rps') {
+        const CHO = { r: '✊', p: '✋', s: '✌️' };
+        const myChoice = state.choices?.[username] || null;
+        const summarize = (choices) => {
+          const vals = Object.values(choices || {});
+          const setTypes = new Set(vals);
+          if (vals.length < 2) return null;
+          if (setTypes.size === 1 || setTypes.size === 3) return { winner: null, detail: 'Berabere' };
+          // İki tip varsa kazanan tipi bul
+          if (setTypes.has('r') && setTypes.has('p')) return { winnerType: 'p', detail: 'Kağıt, Taş’ı sarar' };
+          if (setTypes.has('p') && setTypes.has('s')) return { winnerType: 's', detail: 'Makas, Kağıt’ı keser' };
+          if (setTypes.has('s') && setTypes.has('r')) return { winnerType: 'r', detail: 'Taş, Makas’ı kırar' };
+          return null;
+        };
+        const res = summarize(state.choices || {});
+        const winners = res && res.winnerType ? Object.entries(state.choices || {}).filter(([,c]) => c === res.winnerType).map(([u]) => u) : (res && res.winner === null ? [] : null);
+        gameContentEl.innerHTML = `
+          <div class="rps-meta">Tur ${state.round} · ${res ? (res.detail || '') : 'Seçim yapılıyor...'}</div>
+          <div class="rps-options">
+            <button class="btn big rps" data-c="r" ${myChoice ? 'disabled' : ''}>✊</button>
+            <button class="btn big rps" data-c="p" ${myChoice ? 'disabled' : ''}>✋</button>
+            <button class="btn big rps" data-c="s" ${myChoice ? 'disabled' : ''}>✌️</button>
+          </div>
+          <div class="list small" id="rpsList">
+            ${(state.choices && Object.keys(state.choices).length) ? Object.entries(state.choices).map(([u,c]) => `<div>${u}: ${CHO[c]}</div>`).join('') : '<div class="muted">Henüz seçim yok.</div>'}
+          </div>
+          <div class="btn-row">
+            <button id="rpsNew" class="btn secondary">Yeni Tur</button>
+          </div>
+          ${winners ? `<div class="highlight">Kazanan: ${winners.length ? winners.join(', ') : 'Yok (Berabere)'}</div>` : ''}
+        `;
+        Array.from(gameContentEl.querySelectorAll('.rps')).forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (state.choices && state.choices[username]) return;
+            const c = btn.dataset.c;
+            const choices = { ...(state.choices || {}), [username]: c };
+            await set(gameRef, { ...state, choices });
+          });
+        });
+        gameContentEl.querySelector('#rpsNew').addEventListener('click', async () => {
+          await set(gameRef, { round: (state.round || 1) + 1, choices: {}, result: null });
+        });
+        return;
+      }
+
+      if (type === 'click') {
+        const goal = state.goal || 50;
+        const myScore = state.scores?.[username] || 0;
+        const entries = Object.entries(state.scores || {}).sort((a,b) => (b[1]||0) - (a[1]||0));
+        gameContentEl.innerHTML = `
+          <div class="race-meta">Hedef: ${goal} · ${state.finished ? `Kazanan: ${state.finished}` : 'Devam ediyor'}</div>
+          <div class="btn-row">
+            <button id="clickBtn" class="btn big" ${state.finished ? 'disabled' : ''}>+1</button>
+            <button id="resetRace" class="btn secondary">Sıfırla</button>
+          </div>
+          <div class="scores">
+            ${entries.length ? entries.map(([u, s]) => `
+              <div class="score">
+                <div class="row"><strong>${u}</strong><span>${s}/${goal}</span></div>
+                <div class="progress"><div class="bar" style="width:${Math.min(100, Math.round((s/goal)*100))}%"></div></div>
+              </div>`).join('') : '<div class="muted">Henüz skor yok.</div>'}
+          </div>
+        `;
+        gameContentEl.querySelector('#clickBtn').addEventListener('click', async () => {
+          if (state.finished) return;
+          const nextScore = (state.scores?.[username] || 0) + 1;
+          const scores = { ...(state.scores || {}), [username]: nextScore };
+          const finished = nextScore >= (state.goal || 50) ? username : null;
+          await set(gameRef, { ...state, scores, finished: state.finished || finished });
+        });
+        gameContentEl.querySelector('#resetRace').addEventListener('click', async () => {
+          await set(gameRef, { goal: goal, scores: {}, finished: null });
+        });
+        return;
+      }
+
+      // Bilinmeyen oyun tipi
+      gameContentEl.innerHTML = '<div class="muted">Bu oyun henüz desteklenmiyor.</div>';
+    };
+
+    // Oyun durumunu dinle ve UI'ı güncelle
+    let latestUsers = {};
+    onValue(usersRef, async (snap) => {
+      latestUsers = snap.exists() ? snap.val() : {};
+      if (type === 'xox' && gameState) {
+        await assignXoxPlayersIfNeeded(gameState, latestUsers);
+      }
+    });
+
+    if (type !== 'chat') {
+      onValue(gameRef, async (snap) => {
+        const state = snap.exists() ? snap.val() : null;
+        if (!state) return;
+        gameState = state;
+        if (type === 'xox') {
+          await assignXoxPlayersIfNeeded(gameState, latestUsers);
+        }
+        render(gameState, latestUsers);
+      });
+    }
+
+    // Sayfadan çıkışta kullanıcıyı odadan sil
     window.addEventListener("beforeunload", () => remove(userRef));
   </script>
 </body>
