@@ -15,18 +15,29 @@
     <p class="devtag">Developed by <span>xQuera</span></p>
   </div>
 
-  <script>
+  <script type="module">
+    import { db, ref, set } from "./firebase.js";
+
     const input = document.getElementById("usernameInput");
     const btn = document.getElementById("loginBtn");
 
+    // Eğer kullanıcı adı varsa direkt yönlendir
     if(localStorage.getItem("username")) {
       window.location.href = "home.html";
     }
 
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const username = input.value.trim();
       if(username.length < 3) return alert("Kullanıcı adı en az 3 karakter olmalı!");
+
       localStorage.setItem("username", username);
+
+      // Firebase'e kullanıcı ekle
+      await set(ref(db, "users/" + username), {
+        name: username,
+        joinedAt: Date.now()
+      });
+
       window.location.href = "home.html";
     });
   </script>
