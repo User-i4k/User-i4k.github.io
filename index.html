@@ -1,61 +1,198 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>xQuera Chat - Giriş</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOBA Arena - Giriş</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        .error.show {
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+        }
+        .loading.show {
+            display: block;
+        }
+    </style>
 </head>
-<body class="center">
+<body>
+    <div class="container">
+        <h1>⚔️ MOBA Arena</h1>
+        <p>Oyuna girmek için bir kullanıcı adı seçin</p>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" required minlength="3" maxlength="20" placeholder="3-20 karakter">
+            </div>
+            <button type="submit">Oyuna Gir</button>
+            <div class="error" id="errorMsg"></div>
+            <div class="loading" id="loading">Giriş yapılıyor...</div>
+        </form>
+    </div>
 
-  <!-- Kullanıcı kontrol scripti -->
-  <script src="guard.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const loading = document.getElementById('loading');
+        const usernameInput = document.getElementById('username');
 
-  <div class="login-card">
-    <h1>🔥 xQuera Chat</h1>
-    <p>Kullanıcı adını gir:</p>
-    <input id="usernameInput" type="text" placeholder="Kullanıcı adı..." maxlength="15" autocomplete="off">
-    <button id="loginBtn">Giriş</button>
-    <p class="devtag">Developed by <span>xQuera</span></p>
-  </div>
+        // Check if already logged in
+        if (localStorage.getItem('username')) {
+            window.location.href = 'game.html';
+        }
 
-  <script type="module">
-    import { db, ref, set } from "./firebase.js";
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
 
-    const input = document.getElementById("usernameInput");
-    const btn = document.getElementById("loginBtn");
+            if (!username || username.length < 3) {
+                showError('Kullanıcı adı en az 3 karakter olmalıdır!');
+                return;
+            }
 
-    // Eğer kullanıcı zaten giriş yaptıysa direkt yönlendir
-    const existingUser = localStorage.getItem("username");
-    if (existingUser && existingUser.trim() !== "") {
-      window.location.href = "home.html";
-    }
+            loading.classList.add('show');
+            errorMsg.classList.remove('show');
 
-    btn.addEventListener("click", async () => {
-      const username = input.value.trim();
+            try {
+                // Sign in anonymously
+                const userCredential = await signInAnonymously();
+                const user = userCredential.user;
 
-      // Boş veya kısa ad engeli
-      if (!username) return alert("Lütfen bir kullanıcı adı girin!");
-      if (username.length < 3) return alert("Kullanıcı adı en az 3 karakter olmalı!");
-      if (username.includes(" ")) return alert("Kullanıcı adında boşluk olamaz!");
+                // Check if username already exists
+                const userSnapshot = await firebase.database().ref('users').once('value');
+                const users = userSnapshot.val() || {};
+                const existingUser = Object.values(users).find(u => u.username === username && u.uid !== user.uid);
 
-      // Kullanıcı adını kaydet
-      localStorage.setItem("username", username);
+                if (existingUser) {
+                    showError('Bu kullanıcı adı zaten alınmış!');
+                    loading.classList.remove('show');
+                    return;
+                }
 
-      try {
-        // Firebase'e kullanıcıyı kaydet
-        await set(ref(db, "users/" + username), {
-          name: username,
-          joinedAt: Date.now()
+                // Save to database
+                await firebase.database().ref(`users/${user.uid}`).set({
+                    username: username,
+                    uid: user.uid,
+                    score: 0,
+                    level: 1,
+                    kills: 0,
+                    deaths: 0,
+                    banned: false,
+                    joinedAt: Date.now()
+                });
+
+                // Save to localStorage
+                localStorage.setItem('username', username);
+                localStorage.setItem('uid', user.uid);
+
+                // Redirect to game
+                window.location.href = 'game.html';
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Giriş yapılırken bir hata oluştu: ' + error.message);
+                loading.classList.remove('show');
+            }
         });
 
-        // Ana sayfaya yönlendir
-        window.location.href = "home.html";
-      } catch (err) {
-        console.error("Firebase hatası:", err);
-        alert("Bağlantı sırasında bir hata oluştu, lütfen tekrar deneyin.");
-      }
-    });
-  </script>
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.classList.add('show');
+        }
+
+        async function signInAnonymously() {
+            return new Promise((resolve, reject) => {
+                firebase.auth().signInAnonymously()
+                    .then(resolve)
+                    .catch(reject);
+            });
+        }
+    </script>
 </body>
 </html>
+
