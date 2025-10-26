@@ -18,6 +18,7 @@
         #gameCanvas {
             display: block;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            cursor: crosshair;
         }
         #ui {
             position: absolute;
@@ -224,15 +225,6 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            gridImage = null; // Reset grid cache on resize
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
         // Game variables
         const username = localStorage.getItem('username');
         const uid = localStorage.getItem('uid');
@@ -245,6 +237,16 @@
         let lastDbUpdate = 0;
         const DB_UPDATE_INTERVAL = 100; // Update database every 100ms
         let gridImage = null;
+        let gameStarted = false;
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gridImage = null; // Reset grid cache on resize
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         
         // Ability cooldowns (in seconds)
         const cooldowns = {
@@ -290,19 +292,22 @@
             updatePlayerPosition();
         });
 
-        // Mouse controls
+        // Disable context menu on canvas
         canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            targetX = e.clientX - rect.left;
-            targetY = e.clientY - rect.top;
-            isMoving = true;
-            
-            // Show click effect
-            const clickX = targetX;
-            const clickY = targetY;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            setTimeout(() => drawGame(), 50);
+        });
+        
+        // Mouse controls - right click to move
+        canvas.addEventListener('mousedown', (e) => {
+            // Check if right button (button 2) or Ctrl+Click
+            if (e.button === 2) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                targetX = e.clientX - rect.left;
+                targetY = e.clientY - rect.top;
+                isMoving = true;
+                return false;
+            }
         });
 
         // Keyboard controls for abilities
@@ -315,26 +320,30 @@
         });
 
         function useAbility(key) {
-            if (abilityTimers[key] > 0) return;
+            if (!gameStarted || abilityTimers[key] > 0 || !myPlayer) return;
             
             abilityTimers[key] = cooldowns[key];
             const abilityEl = document.getElementById(`ability${key}`);
-            abilityEl.classList.remove('ready');
-            abilityEl.classList.add('cooldown');
-            
-            // Simulate ability cast
-            const startTime = Date.now();
-            const timer = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, cooldowns[key] - elapsed / 1000);
+            if (abilityEl) {
+                abilityEl.classList.remove('ready');
+                abilityEl.classList.add('cooldown');
                 
-                if (remaining <= 0) {
-                    abilityEl.classList.remove('cooldown');
-                    abilityEl.classList.add('ready');
-                    abilityTimers[key] = 0;
-                    clearInterval(timer);
-                }
-            }, 100);
+                // Simulate ability cast
+                const startTime = Date.now();
+                const timer = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, cooldowns[key] - elapsed / 1000);
+                    
+                    if (remaining <= 0) {
+                        if (abilityEl) {
+                            abilityEl.classList.remove('cooldown');
+                            abilityEl.classList.add('ready');
+                        }
+                        abilityTimers[key] = 0;
+                        clearInterval(timer);
+                    }
+                }, 100);
+            }
             
             // Broadcast ability usage (instant, no delay)
             if (myPlayer && uid) {
@@ -498,8 +507,6 @@
             const colors = ['#4ecdc4', '#f7dc6f', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71', '#f39c12', '#e67e22'];
             return colors[Math.floor(Math.random() * colors.length)];
         }
-
-        let gameStarted = false;
 
         function gameLoop() {
             if (gameStarted) {
