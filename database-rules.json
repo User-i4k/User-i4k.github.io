@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && ($uid === auth.uid || auth.token.admin === true)",
+        "username": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20"
+        },
+        "score": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "banned": {
+          ".write": "auth != null && auth.token.admin === true"
+        }
+      }
+    },
+    "game": {
+      "players": {
+        "$uid": {
+          ".read": true,
+          ".write": "auth != null && $uid === auth.uid",
+          ".validate": "auth != null && root.child('users/' + auth.uid + '/banned').val() != true"
+        }
+      },
+      "abilities": {
+        "$uid": {
+          ".read": true,
+          ".write": "auth != null && $uid === auth.uid",
+          ".validate": "auth != null && root.child('users/' + auth.uid + '/banned').val() != true"
+        }
+      }
+    }
+  }
+}
+
