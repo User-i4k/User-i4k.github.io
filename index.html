@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOBA Arena - Giriş</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
     <style>
         * {
             margin: 0;
@@ -115,7 +112,15 @@
         </form>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
+    
+    <!-- Main Script -->
     <script>
         const loginForm = document.getElementById('loginForm');
         const errorMsg = document.getElementById('errorMsg');
@@ -144,19 +149,21 @@
                 const userCredential = await signInAnonymously();
                 const user = userCredential.user;
 
-                // Check if username already exists
-                const userSnapshot = await firebase.database().ref('users').once('value');
-                const users = userSnapshot.val() || {};
-                const existingUser = Object.values(users).find(u => u.username === username && u.uid !== user.uid);
+                // Check if username already exists (optimized with limit)
+                const userSnapshot = await firebase.database().ref('users').orderByChild('username').equalTo(username).once('value');
+                const existingUsers = userSnapshot.val();
 
-                if (existingUser) {
-                    showError('Bu kullanıcı adı zaten alınmış!');
-                    loading.classList.remove('show');
-                    return;
+                if (existingUsers) {
+                    const existingUid = Object.keys(existingUsers)[0];
+                    if (existingUid && existingUid !== user.uid) {
+                        showError('Bu kullanıcı adı zaten alınmış!');
+                        loading.classList.remove('show');
+                        return;
+                    }
                 }
 
-                // Save to database
-                await firebase.database().ref(`users/${user.uid}`).set({
+                // Save to database (async, non-blocking)
+                firebase.database().ref(`users/${user.uid}`).set({
                     username: username,
                     uid: user.uid,
                     score: 0,
@@ -165,13 +172,13 @@
                     deaths: 0,
                     banned: false,
                     joinedAt: Date.now()
-                });
+                }).catch(err => console.error('DB save error:', err));
 
-                // Save to localStorage
+                // Save to localStorage first (instant)
                 localStorage.setItem('username', username);
                 localStorage.setItem('uid', user.uid);
 
-                // Redirect to game
+                // Redirect to game immediately
                 window.location.href = 'game.html';
             } catch (error) {
                 console.error('Login error:', error);
