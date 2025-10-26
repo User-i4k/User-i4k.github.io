@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOBA Arena</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
     <style>
         * {
             margin: 0;
@@ -215,6 +212,12 @@
         <div id="message"></div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config & Guard -->
     <script src="firebase-config.js"></script>
     <script src="guard.js"></script>
     <script>
@@ -225,6 +228,7 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            gridImage = null; // Reset grid cache on resize
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
@@ -236,6 +240,11 @@
         let myPlayer = null;
         let targetX = 0, targetY = 0;
         let isMoving = false;
+        
+        // Optimization variables
+        let lastDbUpdate = 0;
+        const DB_UPDATE_INTERVAL = 100; // Update database every 100ms
+        let gridImage = null;
         
         // Ability cooldowns (in seconds)
         const cooldowns = {
@@ -273,6 +282,9 @@
             document.getElementById('score').textContent = myPlayer.score;
             document.getElementById('kills').textContent = myPlayer.kills;
             document.getElementById('deaths').textContent = myPlayer.deaths;
+            
+            // Start the game
+            gameStarted = true;
             
             // Initialize player position in database
             updatePlayerPosition();
@@ -324,8 +336,8 @@
                 }
             }, 100);
             
-            // Broadcast ability usage
-            if (database) {
+            // Broadcast ability usage (instant, no delay)
+            if (myPlayer && uid) {
                 firebase.database().ref(`game/abilities/${uid}`).set({
                     key: key,
                     x: myPlayer.x,
@@ -334,7 +346,7 @@
                 });
                 setTimeout(() => {
                     firebase.database().ref(`game/abilities/${uid}`).remove();
-                }, 1000);
+                }, 800); // Reduced timeout for faster clearing
             }
             
             showMessage(`🎯 ${key} Yeteneği Kullanıldı!`);
@@ -349,15 +361,17 @@
             }, 1500);
         }
 
-        // Listen for other players
-        firebase.database().ref('game/players').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            players = data;
-            if (myPlayer) {
-                players[uid] = myPlayer;
-            }
-            updatePlayersList();
-        });
+        // Listen for other players (real-time updates)
+        if (uid) {
+            firebase.database().ref('game/players').on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                players = data;
+                if (myPlayer) {
+                    players[uid] = myPlayer;
+                }
+                updatePlayersList();
+            });
+        }
 
         function updatePlayersList() {
             const list = document.getElementById('playersList');
@@ -385,35 +399,54 @@
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance > 5) {
-                const speed = 3;
+                const speed = 5; // Increased speed for better responsiveness
                 myPlayer.x += (dx / distance) * speed;
                 myPlayer.y += (dy / distance) * speed;
             }
             
-            // Update in database
-            if (database && uid) {
-                firebase.database().ref(`game/players/${uid}`).set(myPlayer);
+            // Update in database (throttled to reduce network traffic)
+            const now = Date.now();
+            if (myPlayer && uid && (now - lastDbUpdate) > DB_UPDATE_INTERVAL) {
+                firebase.database().ref(`game/players/${uid}`).update({
+                    x: myPlayer.x,
+                    y: myPlayer.y,
+                    username: myPlayer.username,
+                    color: myPlayer.color,
+                    hp: myPlayer.hp,
+                    maxHp: myPlayer.maxHp
+                });
+                lastDbUpdate = now;
             }
+        }
+
+        function drawGrid() {
+            if (!gridImage || gridImage.width !== canvas.width || gridImage.height !== canvas.height) {
+                gridImage = document.createElement('canvas');
+                gridImage.width = canvas.width;
+                gridImage.height = canvas.height;
+                const gridCtx = gridImage.getContext('2d');
+                
+                gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                gridCtx.lineWidth = 1;
+                for (let x = 0; x < canvas.width; x += 50) {
+                    gridCtx.beginPath();
+                    gridCtx.moveTo(x, 0);
+                    gridCtx.lineTo(x, canvas.height);
+                    gridCtx.stroke();
+                }
+                for (let y = 0; y < canvas.height; y += 50) {
+                    gridCtx.beginPath();
+                    gridCtx.moveTo(0, y);
+                    gridCtx.lineTo(canvas.width, y);
+                    gridCtx.stroke();
+                }
+            }
+            ctx.drawImage(gridImage, 0, 0);
         }
 
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 50) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
+            drawGrid();
             
             // Draw players
             Object.values(players).forEach(player => {
@@ -466,18 +499,23 @@
             return colors[Math.floor(Math.random() * colors.length)];
         }
 
+        let gameStarted = false;
+
         function gameLoop() {
-            updatePlayerPosition();
-            drawGame();
+            if (gameStarted) {
+                updatePlayerPosition();
+                drawGame();
+            }
             requestAnimationFrame(gameLoop);
         }
 
+        // Start game loop
         gameLoop();
 
         // Logout function
         function logout() {
             if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
-                if (database && uid) {
+                if (uid) {
                     firebase.database().ref(`game/players/${uid}`).remove();
                     firebase.database().ref(`users/${uid}`).remove();
                 }
@@ -486,22 +524,32 @@
             }
         }
 
-        // Listen for ability updates
-        firebase.database().ref('game/abilities').on('child_added', (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.uid !== uid) {
-                // Visual effect for other players' abilities
-                const ability = data;
-                ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-                ctx.beginPath();
-                ctx.arc(ability.x, ability.y, 50, 0, Math.PI * 2);
-                ctx.fill();
-                setTimeout(() => {
-                    ctx.clearRect(ability.x - 60, ability.y - 60, 120, 120);
-                    drawGame();
-                }, 500);
-            }
-        });
+        // Listen for ability updates (optimized with one-time snapshots)
+        if (uid) {
+            firebase.database().ref('game/abilities').on('child_added', (snapshot) => {
+                // Only process if it's not our own ability
+                if (snapshot.key !== uid) {
+                    const data = snapshot.val();
+                    if (data && data.x && data.y) {
+                        // Instant visual feedback (no delay)
+                        setTimeout(() => {
+                            if (canvas && ctx) {
+                                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                                ctx.beginPath();
+                                ctx.arc(data.x, data.y, 50, 0, Math.PI * 2);
+                                ctx.fill();
+                                setTimeout(() => {
+                                    if (canvas && ctx) {
+                                        ctx.clearRect(data.x - 60, data.y - 60, 120, 120);
+                                        drawGame();
+                                    }
+                                }, 300);
+                            }
+                        }, 0);
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
