@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moba Game - Giriş</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h1>🎮 Moba Game</h1>
+            <p class="subtitle">Oyuna hoş geldiniz!</p>
+            <form id="usernameForm">
+                <input 
+                    type="text" 
+                    id="usernameInput" 
+                    placeholder="Kullanıcı adınızı girin..." 
+                    required 
+                    maxlength="20"
+                    autocomplete="off"
+                >
+                <button type="submit">Oyuna Başla</button>
+            </form>
+            <p class="info">Kullanıcı adınız tarayıcınızda kaydedilecektir.</p>
+        </div>
+    </div>
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>
+
