@@ -110,6 +110,10 @@ function setupCharacterSelection() {
                 return;
             }
             
+            // Seçim animasyonu
+            characterCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            
             selectedCharacter = card.dataset.character;
             const character = characterTypes[selectedCharacter];
             
@@ -123,12 +127,35 @@ function setupCharacterSelection() {
             document.getElementById('abilityEName').textContent = character.abilities.E.name;
             document.getElementById('abilityRName').textContent = character.abilities.R.name;
             
-            // Karakter seçim ekranını gizle, oyun ekranını göster
-            characterSelect.style.display = 'none';
-            gameContainer.classList.remove('hidden');
+            // Fade out animasyonu
+            characterSelect.style.opacity = '0';
+            characterSelect.style.transition = 'opacity 0.5s ease';
             
-            // Oyunu başlat
-            initializeGame();
+            setTimeout(() => {
+                characterSelect.style.display = 'none';
+                gameContainer.classList.remove('hidden');
+                gameContainer.style.opacity = '0';
+                gameContainer.style.transition = 'opacity 0.5s ease';
+                
+                // Fade in animasyonu
+                setTimeout(() => {
+                    gameContainer.style.opacity = '1';
+                }, 50);
+                
+                // Oyunu başlat
+                initializeGame();
+            }, 500);
+        });
+        
+        // Hover efekti
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-12px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            if (!card.classList.contains('selected')) {
+                card.style.transform = '';
+            }
         });
     });
 }
@@ -171,6 +198,20 @@ function initializeGame() {
             );
             
             gameEngine.start();
+            
+            // Çıkış butonu event listener
+            document.getElementById('exitButton').addEventListener('click', () => {
+                if (confirm('Oyundan çıkmak istediğinize emin misiniz?')) {
+                    // Firebase'den oyuncuyu sil
+                    if (playerRef) {
+                        set(playerRef, null);
+                    }
+                    // LocalStorage'ı temizle
+                    localStorage.removeItem('mobaGameUsername');
+                    // Ana sayfaya yönlendir
+                    window.location.href = 'index.html';
+                }
+            });
         } else {
             alert('Kimlik doğrulama hatası!');
             window.location.href = 'index.html';

@@ -22,7 +22,14 @@ document.getElementById('usernameForm').addEventListener('submit', async (e) => 
         return;
     }
     
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
     try {
+        // Loading state
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="loading"></span> Giriş yapılıyor...';
+        
         // Kullanıcı adını sanitize et (XSS koruması)
         const sanitizedUsername = username
             .replace(/[<>]/g, '') // HTML tag karakterlerini temizle
@@ -40,10 +47,20 @@ document.getElementById('usernameForm').addEventListener('submit', async (e) => 
             console.warn('LocalStorage yazılamadı:', storageError);
         }
         
-        // Oyun sayfasına yönlendir
-        window.location.href = 'game.html';
+        // Başarılı animasyon
+        submitButton.innerHTML = '✓ Başarılı!';
+        submitButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        
+        // Kısa bir gecikme sonra yönlendir
+        setTimeout(() => {
+            window.location.href = 'game.html';
+        }, 500);
     } catch (error) {
         console.error('Giriş hatası:', error);
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+        submitButton.classList.add('shake');
+        setTimeout(() => submitButton.classList.remove('shake'), 300);
         alert('Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.');
     }
 });
