@@ -164,54 +164,74 @@ function setupCharacterSelection() {
 function initializeGame() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Firebase'de oyuncu verisini oluştur
-            playerRef = ref(database, `players/${user.uid}`);
-            
-            // Canvas boyutuna göre başlangıç pozisyonu
+            // Canvas'ı bekle ve boyutunu kontrol et
             const canvas = document.getElementById('gameCanvas');
-            const startX = Math.random() * (canvas.width - 200) + 100;
-            const startY = Math.random() * (canvas.height - 200) + 100;
             
-            const initialData = {
-                username: username,
-                character: selectedCharacter,
-                x: startX,
-                y: startY,
-                color: characterTypes[selectedCharacter].color,
-                timestamp: serverTimestamp()
+            // Canvas'ın render edilmesini bekle
+            const waitForCanvas = () => {
+                // Canvas boyutunu zorla ayarla
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Eğer hala 0 ise, bekle
+                if (canvas.width === 0 || canvas.height === 0) {
+                    setTimeout(waitForCanvas, 50);
+                    return;
+                }
+                
+                // Canvas boyutuna göre başlangıç pozisyonu (rastgele)
+                const radius = 20;
+                const startX = Math.random() * (canvas.width - radius * 4) + radius * 2;
+                const startY = Math.random() * (canvas.height - radius * 4) + radius * 2;
+                
+                // Firebase'de oyuncu verisini oluştur
+                playerRef = ref(database, `players/${user.uid}`);
+                
+                const initialData = {
+                    username: username,
+                    character: selectedCharacter,
+                    x: startX,
+                    y: startY,
+                    color: characterTypes[selectedCharacter].color,
+                    timestamp: serverTimestamp()
+                };
+                
+                set(playerRef, initialData);
+                
+                // Bağlantı kesildiğinde oyuncuyu sil
+                onDisconnect(playerRef).remove();
+                
+                // Oyun motorunu başlat (başlangıç pozisyonu ile)
+                gameEngine = new GameEngine(
+                    canvas,
+                    user.uid,
+                    username,
+                    selectedCharacter,
+                    characterTypes[selectedCharacter],
+                    playerRef,
+                    database,
+                    startX,
+                    startY
+                );
+                
+                gameEngine.start();
+                
+                // Çıkış butonu event listener
+                document.getElementById('exitButton').addEventListener('click', () => {
+                    if (confirm('Oyundan çıkmak istediğinize emin misiniz?')) {
+                        // Firebase'den oyuncuyu sil
+                        if (playerRef) {
+                            set(playerRef, null);
+                        }
+                        // LocalStorage'ı temizle
+                        localStorage.removeItem('mobaGameUsername');
+                        // Ana sayfaya yönlendir
+                        window.location.href = 'index.html';
+                    }
+                });
             };
             
-            set(playerRef, initialData);
-            
-            // Bağlantı kesildiğinde oyuncuyu sil
-            onDisconnect(playerRef).remove();
-            
-            // Oyun motorunu başlat
-            gameEngine = new GameEngine(
-                document.getElementById('gameCanvas'),
-                user.uid,
-                username,
-                selectedCharacter,
-                characterTypes[selectedCharacter],
-                playerRef,
-                database
-            );
-            
-            gameEngine.start();
-            
-            // Çıkış butonu event listener
-            document.getElementById('exitButton').addEventListener('click', () => {
-                if (confirm('Oyundan çıkmak istediğinize emin misiniz?')) {
-                    // Firebase'den oyuncuyu sil
-                    if (playerRef) {
-                        set(playerRef, null);
-                    }
-                    // LocalStorage'ı temizle
-                    localStorage.removeItem('mobaGameUsername');
-                    // Ana sayfaya yönlendir
-                    window.location.href = 'index.html';
-                }
-            });
+            waitForCanvas();
         } else {
             alert('Kimlik doğrulama hatası!');
             window.location.href = 'index.html';

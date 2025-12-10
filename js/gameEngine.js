@@ -1,7 +1,7 @@
 import { ref, onValue, set, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
 export class GameEngine {
-    constructor(canvas, playerId, username, characterType, characterData, playerRef, database) {
+    constructor(canvas, playerId, username, characterType, characterData, playerRef, database, startX = null, startY = null) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.playerId = playerId;
@@ -20,9 +20,19 @@ export class GameEngine {
         this.playerInterpolations = {}; // Smooth movement için interpolation
         this.targetX = null;
         this.targetY = null;
-        this.currentX = 0;
-        this.currentY = 0;
-        this.speed = 3;
+        
+        // Başlangıç pozisyonu (parametre olarak gelirse kullan, yoksa rastgele)
+        if (startX !== null && startY !== null) {
+            this.currentX = startX;
+            this.currentY = startY;
+        } else {
+            // Canvas boyutuna göre rastgele pozisyon
+            const radius = 20;
+            this.currentX = Math.random() * (this.canvas.width - radius * 4) + radius * 2;
+            this.currentY = Math.random() * (this.canvas.height - radius * 4) + radius * 2;
+        }
+        
+        this.speed = 150; // Pixel per second (smooth movement için)
         
         // Firebase write throttle (100ms = 10 write/saniye)
         this.lastFirebaseWrite = 0;
@@ -43,6 +53,9 @@ export class GameEngine {
         // Render optimizasyonu
         this.lastFrameTime = performance.now();
         this.frameCount = 0;
+        
+        // Yetenek efektleri
+        this.abilityEffects = [];
         
         // Event listener'lar
         this.setupEventListeners();
@@ -166,18 +179,38 @@ export class GameEngine {
     }
     
     showAbilityEffect(key) {
-        // Basit bir efekt gösterimi (ileride geliştirilebilir)
-        const effect = {
+        // Yetenek efektini ekle
+        const ability = this.characterData.abilities[key];
+        const effectColors = {
+            Q: '#ef4444',
+            W: '#3b82f6',
+            E: '#10b981',
+            R: '#f59e0b'
+        };
+        
+        this.abilityEffects.push({
             x: this.currentX,
             y: this.currentY,
             type: key,
-            time: Date.now()
-        };
+            color: effectColors[key] || '#6366f1',
+            time: 0,
+            duration: 0.8, // 0.8 saniye
+            radius: 30,
+            maxRadius: 60
+        });
         
-        // Geçici olarak efekt göster (200ms)
-        setTimeout(() => {
-            // Efekt animasyonu burada yapılabilir
-        }, 200);
+        // Visual feedback için ability butonunu vurgula
+        const abilityElement = document.getElementById(`ability${key}`);
+        if (abilityElement) {
+            abilityElement.style.transform = 'scale(1.2)';
+            abilityElement.style.boxShadow = '0 0 20px ' + (effectColors[key] || '#6366f1');
+            setTimeout(() => {
+                abilityElement.style.transform = '';
+                abilityElement.style.boxShadow = '';
+            }, 200);
+        }
+        
+        console.log(`${ability.name} kullanıldı!`);
     }
     
     updateAbilityUI(key) {
@@ -243,26 +276,33 @@ export class GameEngine {
         for (const [playerId, player] of Object.entries(this.players)) {
             if (playerId === this.playerId) continue; // Kendi kendisiyle collision yok
             
-            if (player.x !== undefined && player.y !== undefined) {
-                const dx = newX - player.x;
-                const dy = newY - player.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const minDistance = radius * 2; // İki oyuncunun radius'u
-                
-                if (distance < minDistance) {
-                    // Collision var, pozisyonu ayarla
-                    if (distance > 0) {
-                        const overlap = minDistance - distance;
-                        const angle = Math.atan2(dy, dx);
-                        newX += Math.cos(angle) * overlap * 0.5;
-                        newY += Math.sin(angle) * overlap * 0.5;
-                    } else {
-                        // Aynı pozisyonda, rastgele bir yöne it
-                        const angle = Math.random() * Math.PI * 2;
-                        newX += Math.cos(angle) * radius;
-                        newY += Math.sin(angle) * radius;
-                    }
-                }
+            if (player.x === undefined || player.y === undefined) continue;
+            
+            // Interpolated pozisyonu kullan
+            let otherX = player.x;
+            let otherY = player.y;
+            
+            if (this.playerInterpolations[playerId]) {
+                otherX = this.playerInterpolations[playerId].currentX;
+                otherY = this.playerInterpolations[playerId].currentY;
+            }
+            
+            const dx = newX - otherX;
+            const dy = newY - otherY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = radius * 2; // İki oyuncunun radius'u
+            
+            if (distance < minDistance && distance > 0) {
+                // Collision var, pozisyonu ayarla
+                const overlap = minDistance - distance;
+                const angle = Math.atan2(dy, dx);
+                newX += Math.cos(angle) * overlap * 0.5;
+                newY += Math.sin(angle) * overlap * 0.5;
+            } else if (distance === 0) {
+                // Aynı pozisyonda, rastgele bir yöne it
+                const angle = Math.random() * Math.PI * 2;
+                newX += Math.cos(angle) * radius;
+                newY += Math.sin(angle) * radius;
             }
         }
         return { x: newX, y: newY };
@@ -270,18 +310,26 @@ export class GameEngine {
     
     update() {
         const now = performance.now();
-        const deltaTime = Math.min((now - this.lastFrameTime) / 16.67, 2); // Max 2x speed
+        const deltaTime = Math.min((now - this.lastFrameTime) / 1000, 0.1); // Saniye cinsinden, max 100ms
         this.lastFrameTime = now;
         
-        // Hedefe doğru hareket et
+        // Yetenek efektlerini güncelle
+        this.abilityEffects = this.abilityEffects.filter(effect => {
+            effect.time += deltaTime;
+            return effect.time < effect.duration;
+        });
+        
+        // Hedefe doğru hareket et (smooth movement)
         if (this.targetX !== null && this.targetY !== null) {
             const dx = this.targetX - this.currentX;
             const dy = this.targetY - this.currentY;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance > 5) {
-                let newX = this.currentX + (dx / distance) * this.speed * deltaTime;
-                let newY = this.currentY + (dy / distance) * this.speed * deltaTime;
+            if (distance > 2) {
+                // Smooth movement: speed pixel per second
+                const moveDistance = this.speed * deltaTime;
+                let newX = this.currentX + (dx / distance) * moveDistance;
+                let newY = this.currentY + (dy / distance) * moveDistance;
                 
                 // Canvas sınırları kontrolü
                 const radius = 20;
@@ -404,6 +452,40 @@ export class GameEngine {
         if (this.targetX !== null && this.targetY !== null) {
             this.drawTarget(this.targetX, this.targetY);
         }
+        
+        // Yetenek efektlerini çiz
+        this.abilityEffects.forEach(effect => {
+            this.drawAbilityEffect(effect);
+        });
+    }
+    
+    drawAbilityEffect(effect) {
+        const progress = effect.time / effect.duration;
+        const radius = effect.radius + (effect.maxRadius - effect.radius) * progress;
+        const alpha = 1 - progress;
+        
+        // Dış glow
+        const gradient = this.ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius);
+        gradient.addColorStop(0, effect.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+        gradient.addColorStop(0.5, effect.color + Math.floor(alpha * 128).toString(16).padStart(2, '0'));
+        gradient.addColorStop(1, effect.color + '00');
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // İç çember
+        this.ctx.strokeStyle = effect.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, radius * 0.6, 0, Math.PI * 2);
+        this.ctx.stroke();
+        
+        // Merkez nokta
+        this.ctx.fillStyle = effect.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+        this.ctx.beginPath();
+        this.ctx.arc(effect.x, effect.y, 8, 0, Math.PI * 2);
+        this.ctx.fill();
     }
     
     drawGrid() {
