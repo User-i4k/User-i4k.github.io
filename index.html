@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLISS WAFFLE - Kafemiz</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Menüyü aç/kapat">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <h1 class="logo">🧇 BLISS WAFFLE</h1>
+            <button class="theme-toggle" id="themeToggle" aria-label="Temayı değiştir">
+                <span class="theme-icon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar" id="sidebar">
+        <ul class="nav-list">
+            <li><a href="index.html" class="active">Anasayfa</a></li>
+            <li><a href="index.html#location">Lokasyon</a></li>
+            <li><a href="contact.html">İletişim</a></li>
+            <li><a href="about.html">Hakkımızda</a></li>
+        </ul>
+    </nav>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Hoş Geldiniz!</h2>
+                <p>Lezzetli waffelerin cenneti</p>
+                <a href="contact.html" class="btn btn-primary">WhatsApp ile Temas Kur</a>
+            </div>
+        </section>
+
+        <!-- Location Section -->
+        <section class="location" id="location">
+            <h2>Lokasyonumuz</h2>
+            <div class="map-container">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3015.7477447485673!2d29.2638722!3d40.9590217!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cad17dbde909fb%3A0x2acb1dc379ce89bf!2sBL%C4%B0SS%20WAFFLE%20CAFE!5e0!3m2!1str!2str!4v1640000000000"
+                    width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+            <div class="location-info">
+                <p><strong>Adres:</strong> Sultanbeyli Mehmet akif mahallesi kuran kursu caddesi, Kirklar Sk. No:7,
+                    34920 Sultanbeyli/İstanbul</p>
+                <p><strong>Telefon:</strong> <a href="tel:+905462953461">0546 295 3461</a></p>
+                <p><strong>Çalışma Saatleri:</strong><br>Hafta içi ve hafta sonu: 06:00 - 01:00</p>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <h2>Neden Biz?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌟</div>
+                    <h3>Kaliteli Malzemeler</h3>
+                    <p>En taze ve en iyi kalitede malzemeleri kullanıyoruz</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Hızlı Servis</h3>
+                    <p>Siparişiniz anında hazırlanır</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">❤️</div>
+                    <h3>Sevgiyle Yapılan</h3>
+                    <p>Her waffle sevgi ve özenle yapılır</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>İletişim</h3>
+                <p>Telefon: <a href="tel:+905462953461">0546 295 3461</a></p>
+                <p>
+                    <a href="https://wa.me/905462953461" class="footer-link" target="_blank">📱 WhatsApp</a>
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Sosyal Medya</h3>
+                <p>
+                    <a href="https://www.instagram.com/waffleblis/" class="footer-link" target="_blank">📷 Instagram</a>
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Çalışma Saatleri</h3>
+                <p>Hafta içi: 06:00 - 01:00</p>
+                <p>Hafta sonu: 06:00 - 01:00</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 BLISS WAFFLE CAFE. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Sayfa Bulunamadı</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    <style>
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .error-message {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .error-description {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 300px;
+        }
+
+        .error-emoji {
+            font-size: 4rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Menüyü aç/kapat">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <h1 class="logo">🧇 BLISS WAFFLE</h1>
+            <button class="theme-toggle" id="themeToggle" aria-label="Temayı değiştir">
+                <span class="theme-icon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar" id="sidebar">
+        <ul class="nav-list">
+            <li><a href="index.html">Anasayfa</a></li>
+            <li><a href="index.html#location">Lokasyon</a></li>
+            <li><a href="contact.html">İletişim</a></li>
+            <li><a href="about.html">Hakkımızda</a></li>
+        </ul>
+    </nav>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="error-container">
+            <div class="error-emoji">🤔</div>
+            <h1 class="error-code">404</h1>
+            <h2 class="error-message">Sayfa Bulunamadı!</h2>
+            <p class="error-description">
+                Aradığınız sayfa ne yazık ki mevcut değil. Anasayfaya dönmek için aşağıdaki butona tıklayın.
+            </p>
+            <a href="index.html" class="btn btn-primary">Anasayfaya Dön</a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>İletişim</h3>
+                <p>Telefon: <a href="tel:+905462953461">0546 295 3461</a></p>
+                <p>
+                    <a href="https://wa.me/905462953461" class="footer-link" target="_blank">📱 WhatsApp</a>
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Sosyal Medya</h3>
+                <p>
+                    <a href="https://www.instagram.com/waffleblis/" class="footer-link" target="_blank">📷 Instagram</a>
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Çalışma Saatleri</h3>
+                <p>Hafta içi: 06:00 - 01:00</p>
+                <p>Hafta sonu: 06:00 - 01:00</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 BLISS WAFFLE CAFE. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>

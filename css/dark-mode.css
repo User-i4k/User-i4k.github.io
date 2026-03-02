@@ -1,0 +1,66 @@
+/* Dark Mode Variables */
+body.dark-mode {
+    --text-primary: #e8e8e8;
+    --text-secondary: #b0b0b0;
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --border-color: #404040;
+}
+
+body.dark-mode .header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+body.dark-mode .sidebar {
+    background-color: #1a1a1a;
+    border-right: 2px solid var(--primary-color);
+}
+
+body.dark-mode .nav-list a:hover,
+body.dark-mode .nav-list a.active {
+    background-color: #333333;
+}
+
+body.dark-mode .location {
+    background-color: #2d2d2d;
+}
+
+body.dark-mode .feature-card,
+body.dark-mode .about-card,
+body.dark-mode .contact-info {
+    background-color: #2d2d2d;
+}
+
+body.dark-mode .contact-btn {
+    background-color: #2d2d2d;
+    color: #e8e8e8;
+}
+
+body.dark-mode .contact-btn.whatsapp:hover {
+    background-color: #25D366;
+    color: white;
+}
+
+body.dark-mode .contact-btn.phone:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+body.dark-mode .footer {
+    background-color: #1a1a1a;
+    border-top: 2px solid var(--primary-color);
+}
+
+body.dark-mode .info-item {
+    border-bottom-color: var(--border-color);
+}
+
+/* Smooth transitions for dark mode */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
