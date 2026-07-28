@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Bliss Waffle Menüsü — Waffle çeşitleri, tatlılar, içecekler, dondurma ve kahveler." />
+    <title>Menü | Bliss Waffle</title>
+    <link rel="icon" type="image/png" href="images/blisswaffle-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="menu-page">
+
+    <!-- ═══ NAVBAR ═══════════════════════════════════════════ -->
+    <nav class="navbar">
+        <a href="index.html" aria-label="Ana Sayfaya Dön">
+            <img src="images/blisswaffle-logo.png" alt="Bliss Waffle" class="navbar-logo" />
+        </a>
+        <button class="hamburger" id="hamburger" aria-label="Menüyü aç/kapat">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ═══ SIDEBAR ══════════════════════════════════════════ -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">Bliss Waffle</span>
+            <button class="sidebar-close" id="sidebar-close">✕</button>
+        </div>
+
+        <!-- Getir butonu -->
+        <a href="https://getir.com/yemek/restoran/bliss-waffle-sultanbeyli-mehmet-akif-mah-sultanbeyli-istanbul/"
+            target="_blank" rel="noopener noreferrer" class="getir-btn">
+            <img src="images/getir-logo.png" alt="Getir"
+                style="width: 24px; height: 24px; border-radius: 4px; object-fit: contain;">
+            Getir'den Sipariş Ver
+        </a>
+
+        <div class="sidebar-links">
+            <!-- Ana Sayfa -->
+            <a href="index.html" class="sidebar-link">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#C8730A" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <polyline points="9,22 9,12 15,12 15,22" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Ana Sayfa
+            </a>
+            <!-- WhatsApp ile Sipariş -->
+            <a href="siparis.html" class="sidebar-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366">
+                    <path
+                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                WhatsApp ile Sipariş Ver
+            </a>
+            <!-- Instagram -->
+            <a href="https://www.instagram.com/waffleblis/" target="_blank" rel="noopener" class="sidebar-link">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                    <rect x="2" y="2" width="20" height="20" rx="5" stroke="#C13584" stroke-width="2" />
+                    <circle cx="12" cy="12" r="4" stroke="#C13584" stroke-width="2" />
+                    <circle cx="17.5" cy="6.5" r="1.5" fill="#C13584" />
+                </svg>
+                @waffleblis
+            </a>
+        </div>
+    </aside>
+
+    <!-- ═══ MENU HERO ══════════════════════════════════════════ -->
+    <div class="menu-hero">
+        <p class="menu-hero-sub">Tüm lezzetlerimiz</p>
+        <h1 class="menu-hero-title">🧇 Menümüz</h1>
+        <p class="menu-hero-sub" style="margin-top:8px;">
+            Sipariş vermek için <a href="siparis.html" style="color:var(--amber);font-weight:600;">buraya tıkla →</a>
+        </p>
+    </div>
+
+    <!-- ═══ MENU İÇERİĞİ ════════════════════════════════════════ -->
+    <main id="menu-page-content">
+        <div class="loading-panel" style="background:var(--cream);color:var(--text-muted);">
+            <div class="spinner" style="border-top-color:var(--caramel);"></div>
+            <span>Menü yükleniyor…</span>
+        </div>
+    </main>
+
+    <!-- ═══ ALT CTA BARI ══════════════════════════════════════ -->
+    <div class="menu-cta-bar">
+        <a href="siparis.html" class="btn btn-wa">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path
+                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+            Sipariş Vermek İstiyorum
+        </a>
+    </div>
+
+    <!-- ═══ FOOTER ════════════════════════════════════════════ -->
+    <footer>
+        <img src="images/blisswaffle-logo.png" alt="Bliss Waffle" class="footer-logo" />
+        <div class="footer-grid">
+            <div>
+                <div class="footer-col-title">Sipariş Ver</div>
+                <a href="siparis.html" class="footer-link">🛒 WhatsApp ile Sipariş</a>
+                <a href="https://getir.com/yemek/restoran/bliss-waffle-sultanbeyli-mehmet-akif-mah-sultanbeyli-istanbul/"
+                    target="_blank" rel="noopener" class="footer-link">🛵 Getir'den Sipariş</a>
+            </div>
+            <div>
+                <div class="footer-col-title">Bizi Bulun</div>
+                <a href="https://maps.app.goo.gl/jm7RinCnLEr16XbP7" target="_blank" rel="noopener"
+                    class="footer-link">📍 Google Maps</a>
+                <a href="https://www.instagram.com/waffleblis/" target="_blank" rel="noopener" class="footer-link">📸
+                    @waffleblis</a>
+            </div>
+            <div>
+                <div class="footer-col-title">İletişim</div>
+                <div class="footer-hours">
+                    <span>0546 295 34 61</span>
+                    <span>0530 485 30 57</span>
+                    <span>Sultanbeyli, İstanbul</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Bliss Waffle</div>
+    </footer>
+
+    <script>window.BLISS_MENU = {"not": "Fiyatlar TL'dir.", "kategoriler": [{"kategori": "Waffles", "urunler": [{"id": "w1", "isim": "Sütlü Çikolatalı Bliss Waffle", "icindekiler": ["Sütlü çikolata", "Beyaz çikolata", "Muz", "Çilek", "Fındık"], "fiyat": "349"}, {"id": "w2", "isim": "Orman Meyveli Bliss Waffle", "icindekiler": ["Frambuaz sosu", "Orman meyveleri sosu", "Muz", "Çilek", "Böğürtlen", "Yaban mersini", "Kırmızı frenk üzümü"], "fiyat": "399"}, {"id": "w3", "isim": "Çilekli Bliss Waffle", "icindekiler": ["Çilek sosu", "Sütlü çikolata", "Çilek", "Fındık"], "fiyat": "379"}, {"id": "w4", "isim": "Beyaz Bliss Waffle", "icindekiler": ["Beyaz çikolata"], "fiyat": "379"}, {"id": "w5", "isim": "Caramel Bliss Waffle", "icindekiler": ["Karamel sosu", "Sütlü çikolata", "Çilek", "Fındık"], "fiyat": "359"}, {"id": "w6", "isim": "Bitter Bliss Waffle", "icindekiler": ["Bitter çikolata sosu", "Sütlü çikolata"], "fiyat": "359"}, {"id": "w7", "isim": "Frambuaz Bliss Waffle", "icindekiler": ["Frambuaz sosu", "Beyaz çikolata", "Muz", "Çilek", "Fındık"], "fiyat": "379"}, {"id": "w8", "isim": "Antep Fıstıklı Bliss Waffle", "icindekiler": ["Antep fıstığı ezmesi", "Sütlü çikolata", "Muz", "Çilek", "Fındık"], "fiyat": "379"}, {"id": "w9", "isim": "Bliss Waffle Cup", "icindekiler": ["Bardakta waffle hamuru küçük parçaları", "Sütlü çikolata", "Muz", "Çilek", "Fındık"], "fiyat": "249"}, {"id": "w10", "isim": "Bliss Fresh Mixx Waffle", "icindekiler": ["Özel Bliss waffle hamuru", "Sütlü çikolata", "Beyaz çikolata", "Muz", "Orman meyveleri", "Karamel sos", "Frambuaz sos", "Fıstık"], "fiyat": "419"}, {"id": "w11", "isim": "Bliss Mixx Waffle", "icindekiler": ["Özel Bliss waffle hamuru", "Sütlü çikolata", "Beyaz çikolata", "Muz", "Çilek", "Karamel sos", "Antep fıstığı ezmesi", "Fıstık"], "fiyat": "399"}, {"id": "w12", "isim": "Bliss Bowl Fresh", "icindekiler": ["Özel Bliss waffle hamuru parçaları", "Sütlü çikolata", "Beyaz çikolata", "Muz", "Çilek", "Orman meyveleri", "Fıstık"], "fiyat": "399"}, {"id": "w13", "isim": "Bliss Bowl Klasik", "icindekiler": ["Özel Bliss waffle hamuru parçaları", "Sütlü çikolata", "Beyaz çikolata", "Muz", "Çilek", "Fındık", "Fıstık"], "fiyat": "379"}]}, {"kategori": "Tatlılar", "urunler": [{"id": "t1", "isim": "San Sebastian Cheesecake (Dilim)", "icindekiler": [], "fiyat": "299"}, {"id": "t2", "isim": "Brownie Cheesecake (Dilim)", "icindekiler": [], "fiyat": "279"}, {"id": "t3", "isim": "Çilekli Magnolia", "icindekiler": [], "fiyat": "299"}, {"id": "t4", "isim": "Muzlu Magnolya", "icindekiler": [], "fiyat": "299"}, {"id": "t5", "isim": "Lotus Magnolya", "icindekiler": [], "fiyat": "299"}, {"id": "t6", "isim": "Bliss Brownie", "icindekiler": ["Bitter çikolata", "Damla çikolata", "Antep fıstığı", "Marşmelov"], "fiyat": "299", "eski_fiyat": "320"}, {"id": "t7", "isim": "Bliss Çilek Pare", "icindekiler": ["Karamelli bisküvi", "Muzlu krema", "Muz", "Özel bitter çikolata"], "fiyat": "299"}]}, {"kategori": "İçecekler", "urunler": [{"id": "i1", "isim": "Pepsi (330 ml)", "icindekiler": [], "fiyat": "75"}, {"id": "i2", "isim": "Fanta (330 ml)", "icindekiler": [], "fiyat": "75"}, {"id": "i3", "isim": "Lipton Ice Tea Şeftali (330 ml)", "icindekiler": [], "fiyat": "75"}, {"id": "i4", "isim": "Lipton Ice Tea Limon (330 ml)", "icindekiler": [], "fiyat": "75"}, {"id": "i5", "isim": "Maden Suyu (200 ml)", "icindekiler": [], "fiyat": "60"}, {"id": "i6", "isim": "Su (500 ml)", "icindekiler": [], "fiyat": "30"}, {"id": "i7", "isim": "Meyveli Soda (Karanfil)", "icindekiler": [], "fiyat": "65"}, {"id": "i8", "isim": "Meyveli Soda (Limon)", "icindekiler": [], "fiyat": "65"}, {"id": "i9", "isim": "Limonata", "icindekiler": [], "fiyat": "65"}, {"id": "i10", "isim": "Çamlıca Portakal", "icindekiler": [], "fiyat": "65"}]}, {"kategori": "Dondurma", "urunler": [{"id": "d1", "isim": "Maraş Dövme Dondurma (100g)", "icindekiler": [], "fiyat": "175"}, {"id": "d2", "isim": "Maraş Dövme Dondurma (300g)", "icindekiler": [], "fiyat": "374"}, {"id": "d3", "isim": "Maraş Dövme Dondurma (1000g)", "icindekiler": [], "fiyat": "875"}]}, {"kategori": "Kahveler", "urunler": [{"id": "k1", "isim": "Filtre Kahve (200ml)", "icindekiler": ["Uzun kahve demleme", "Süzme metodu"], "fiyat": "129"}, {"id": "k2", "isim": "Americano (200ml)", "icindekiler": ["Espresso üzerine sıcak su ilavesi ile hazırlanır"], "fiyat": "149"}, {"id": "k3", "isim": "Espresso Macchiato (200ml)", "icindekiler": [], "fiyat": "168"}, {"id": "k4", "isim": "Cappuccino (200ml)", "icindekiler": ["Espresso üzerine köpürtülmüş süt", "İnce süt köpüğü"], "fiyat": "169"}, {"id": "k5", "isim": "Café Mocha (200ml)", "icindekiler": [], "fiyat": "169"}, {"id": "k6", "isim": "Cafe Latte (200ml)", "icindekiler": ["Espresso üzerine buharla ısıtılmış süt", "İnce süt köpüğü"], "fiyat": "168"}, {"id": "k7", "isim": "Flat White (200 ml)", "icindekiler": [], "fiyat": "148"}]}]};</script>
+    <script src="script.js"></script>
+</body>
+
+</html>
